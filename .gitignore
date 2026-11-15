@@ -12,3 +12,8 @@ venv/
 .coverage
 htmlcov/
 .env
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/

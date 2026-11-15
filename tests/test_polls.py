@@ -414,20 +414,12 @@ def test_cors_rejected_origin(client):
 
 
 def test_frontend_pages_served(client):
-    # Landing / Creator Page
+    # React Single Page Application served at root
     res_index = client.get("/")
     assert res_index.status_code == status.HTTP_200_OK
-    assert "Create a Live Poll" in res_index.text
+    assert "Mini Mentimeter" in res_index.text
+    assert '<div id="root">' in res_index.text
 
-    # Voter Page
-    res_vote = client.get("/vote.html")
-    assert res_vote.status_code == status.HTTP_200_OK
-    assert "Vote - Mini Mentimeter" in res_vote.text
-
-    # Presenter Screen Page
-    res_present = client.get("/present.html")
-    assert res_present.status_code == status.HTTP_200_OK
-    assert "Live Results - Mini Mentimeter" in res_present.text
 
 
 

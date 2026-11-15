@@ -1,24 +1,26 @@
-FROM python:3.12-slim
+# Stage 1: Build React frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /build
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
-# Set working directory
+# Stage 2: Python Backend runtime
+FROM python:3.12-slim
 WORKDIR /app
 
-# Prevent Python from writing .pyc files and enable unbuffered logging
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code and migrations
 COPY alembic.ini .
 COPY alembic/ ./alembic/
 COPY app/ ./app/
-COPY frontend/ ./frontend/
+COPY --from=frontend-builder /build/dist ./frontend/dist
 
-# Expose API port
 EXPOSE 8000
 
-# Run migrations and start uvicorn
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

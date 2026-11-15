@@ -29,8 +29,12 @@ def health_check():
     return {"status": "ok"}
 
 
-# Decision 8: Serve static frontend directly without build tools
+# Decision 9: Serve compiled React SPA
+dist_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
-if os.path.exists(frontend_path):
-    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+static_dir = dist_path if os.path.exists(dist_path) else frontend_path
+
+if os.path.exists(static_dir):
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+
 

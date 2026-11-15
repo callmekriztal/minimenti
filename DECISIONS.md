@@ -129,8 +129,22 @@ Each entry documents the core question, alternatives considered with trade-offs,
   3. *Option C (Jinja2 Templates + HTMX)*: Server-rendered templates with HTMX SSE swap extension.
      - *Pros*: Pure Python server-side rendering.
      - *Cons*: Clunky HTML replacement for smooth chart animations compared to native CSS transitions.
-- **Chosen Option**: Option A (Vanilla JavaScript, HTML5 & Tailwind CSS served via FastAPI StaticFiles).
-- **Rationale**: Keeps the application self-contained in a single Docker container with zero build tooling dependencies, while directly showcasing browser-native EventSource (SSE) integration.
+- **Chosen Option**: Option B (React + Vite SPA) [Revised based on UX & UI design requirements].
+- **Rationale**: Switched to a component-driven modern React SPA with Tailwind CSS to deliver high-quality, professional presentation charts, sleek animations, and robust client-side state management.
+
+### Decision 9: React Deployment & Docker Packaging
+- **Date**: 2026-11-15
+- **Question**: How should the React frontend be packaged and deployed in Docker?
+- **Options Considered**:
+  1. *Option 1 (Multi-Stage Docker Build Served by FastAPI on Port 8000)*: Build React with Node in stage 1, copy `dist/` to the Python image, and serve it via FastAPI.
+     - *Pros*: Single container and port for the whole application; eliminates CORS issues in production; simpler Docker Compose setup.
+     - *Cons*: Docker build includes an npm build step.
+  2. *Option 2 (Dedicated Frontend Container in Docker Compose on Port 3000)*: Run frontend in a separate Node/Nginx container.
+     - *Pros*: Independent builds and decoupled services.
+     - *Cons*: Manages multiple host ports (3000 & 8000); requires cross-origin networking.
+- **Chosen Option**: Option 1 (Multi-Stage Docker Build Served by FastAPI on Port 8000).
+- **Rationale**: Keeps Docker execution unified on a single port (8000) while still providing a modern React development workflow with Vite HMR locally.
+
 
 
 
