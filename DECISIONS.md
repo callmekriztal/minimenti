@@ -116,6 +116,23 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Configurable Whitelist via Environment Variable with Local Dev Defaults).
 - **Rationale**: Aligns with production security standards while providing zero-friction integration with standard local frontend tooling (Vite and Next.js).
 
+### Decision 8: Frontend Architecture & Technology Stack
+- **Date**: 2026-11-15
+- **Question**: How should the presenter and voter user interfaces be structured and served?
+- **Options Considered**:
+  1. *Option A (Vanilla JavaScript, HTML5 & Tailwind CSS served via FastAPI StaticFiles)*: Single-page application logic using native browser APIs (`fetch`, `EventSource`, `localStorage`) served directly from a `frontend/` directory.
+     - *Pros*: Zero Node.js or npm build dependencies; single Docker container for whole app; clean explainability using standard browser web APIs.
+     - *Cons*: Does not use a reactive component framework like React.
+  2. *Option B (React + Vite SPA)*: Modern React Single Page Application in a separate directory or container.
+     - *Pros*: Component-based state management; industry-standard resume keyword.
+     - *Cons*: Requires Node.js build tooling, npm packages, and a separate service in Docker Compose.
+  3. *Option C (Jinja2 Templates + HTMX)*: Server-rendered templates with HTMX SSE swap extension.
+     - *Pros*: Pure Python server-side rendering.
+     - *Cons*: Clunky HTML replacement for smooth chart animations compared to native CSS transitions.
+- **Chosen Option**: Option A (Vanilla JavaScript, HTML5 & Tailwind CSS served via FastAPI StaticFiles).
+- **Rationale**: Keeps the application self-contained in a single Docker container with zero build tooling dependencies, while directly showcasing browser-native EventSource (SSE) integration.
+
+
 
 
 

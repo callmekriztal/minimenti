@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Results - Mini Mentimeter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bar-fill {
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-6 sm:p-12">
+  
+  <!-- Header Bar -->
+  <header class="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        M
+      </div>
+      <div>
+        <div class="text-xs font-bold text-indigo-400 tracking-wider uppercase">Live Presentation</div>
+        <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+          <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="connection-status">Live Connected</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats & Admin Actions -->
+    <div class="flex items-center gap-3">
+      <div class="px-3.5 py-1.5 bg-slate-800 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-2">
+        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span><span id="total-votes" class="font-bold text-white text-sm">0</span> votes</span>
+      </div>
+
+      <div id="status-badge" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+        Voting Open
+      </div>
+
+      <!-- Presenter Close Control -->
+      <button 
+        id="close-poll-btn" 
+        class="hidden px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-md shadow-rose-900/40"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Close Voting
+      </button>
+    </div>
+  </header>
+
+  <!-- Question & Live Bars -->
+  <main class="w-full max-w-5xl mx-auto my-auto py-8">
+    <h1 id="poll-title" class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-10 leading-tight">
+      Connecting to poll...
+    </h1>
+
+    <div id="bars-container" class="space-y-4"></div>
+  </main>
+
+  <!-- Footer / Share hint -->
+  <footer class="w-full max-w-5xl mx-auto border-t border-slate-800 pt-4 flex items-center justify-between text-xs text-slate-500">
+    <div id="join-hint">
+      Go to <span id="join-url" class="font-mono text-indigo-400 font-bold"></span> to vote
+    </div>
+    <div class="font-mono text-slate-600">Mini Mentimeter SSE Stream</div>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const pollId = params.get('poll_id');
+    const adminKeyParam = params.get('admin_key');
+    const adminKey = adminKeyParam || localStorage.getItem(`admin_key_${pollId}`);
+
+    const pollTitle = document.getElementById('poll-title');
+    const totalVotesEl = document.getElementById('total-votes');
+    const statusBadge = document.getElementById('status-badge');
+    const closeBtn = document.getElementById('close-poll-btn');
+    const barsContainer = document.getElementById('bars-container');
+    const connectionDot = document.getElementById('connection-dot');
+    const connectionStatus = document.getElementById('connection-status');
+    const joinUrl = document.getElementById('join-url');
+
+    // Color palette for options
+    const colors = [
+      'bg-indigo-500',
+      'bg-cyan-500',
+      'bg-emerald-500',
+      'bg-amber-500',
+      'bg-rose-500',
+      'bg-purple-500',
+      'bg-teal-500',
+      'bg-orange-500',
+      'bg-blue-500',
+      'bg-pink-500',
+    ];
+
+    if (adminKey) {
+      closeBtn.classList.remove('hidden');
+    }
+
+    joinUrl.textContent = `${window.location.origin}/vote.html?poll_id=${pollId}`;
+
+    function renderResults(data) {
+      pollTitle.textContent = data.question;
+      totalVotesEl.textContent = data.total_votes;
+
+      if (data.is_closed) {
+        statusBadge.textContent = 'Voting Closed';
+        statusBadge.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider';
+        closeBtn.classList.add('hidden');
+      }
+
+      const total = data.total_votes;
+      barsContainer.innerHTML = '';
+
+      data.results.forEach((opt, idx) => {
+        const percent = total > 0 ? Math.round((opt.vote_count / total) * 100) : 0;
+        const color = colors[idx % colors.length];
+
+        const row = document.createElement('div');
+        row.className = 'p-4 bg-slate-800/60 border border-slate-700/60 rounded-2xl relative overflow-hidden backdrop-blur-sm';
+        row.innerHTML = `
+          <!-- Background Progress Fill -->
+          <div class="absolute inset-y-0 left-0 ${color} opacity-20 bar-fill" style="width: ${percent}%;"></div>
+
+          <div class="relative z-10 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center">
+                ${String.fromCharCode(65 + idx)}
+              </span>
+              <span class="text-base sm:text-lg font-bold text-slate-100">${opt.text}</span>
+            </div>
+
+            <div class="flex items-baseline gap-3">
+              <span class="text-xs text-slate-400 font-medium">${opt.vote_count} ${opt.vote_count === 1 ? 'vote' : 'votes'}</span>
+              <span class="text-xl sm:text-2xl font-black text-white w-14 text-right">${percent}%</span>
+            </div>
+          </div>
+        `;
+        barsContainer.appendChild(row);
+      });
+    }
+
+    function initStream() {
+      if (!pollId) {
+        pollTitle.textContent = 'Missing poll_id in link.';
+        return;
+      }
+
+      // Decision 4: Connect to Server-Sent Events stream
+      const eventSource = new EventSource(`/polls/${pollId}/stream`);
+
+      eventSource.onopen = () => {
+        connectionDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        connectionStatus.textContent = 'Live Connected';
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          renderResults(data);
+        } catch (e) {
+          console.error('Error parsing SSE event:', e);
+        }
+      };
+
+      eventSource.onerror = () => {
+        connectionDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        connectionStatus.textContent = 'Reconnecting...';
+      };
+    }
+
+    closeBtn.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to close voting for this poll?')) return;
+
+      try {
+        const res = await fetch(`/polls/${pollId}/close`, {
+          method: 'POST',
+          headers: {
+            'X-Admin-Key': adminKey
+          }
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || 'Failed to close poll');
+        }
+      } catch (err) {
+        alert('Network error closing poll');
+      }
+    });
+
+    initStream();
+  </script>
+</body>
+</html>

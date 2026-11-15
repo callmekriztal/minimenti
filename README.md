@@ -37,9 +37,13 @@ A lightweight live polling API designed for interactive presentations and voting
    - Run Alembic migrations automatically (`alembic upgrade head`).
    - Start the FastAPI application on `http://localhost:8000`.
 
-4. **Verify the service**:
-   - Health check: `http://localhost:8000/health`
-   - Interactive Swagger API docs: `http://localhost:8000/docs`
+4. **Access the Web UI & API**:
+   - **Poll Creator Page**: `http://localhost:8000/` (Create polls & generate links)
+   - **Voter Screen**: `http://localhost:8000/vote.html?poll_id=<id>` (Mobile voting UI)
+   - **Live Presenter Screen**: `http://localhost:8000/present.html?poll_id=<id>` (Real-time SSE projector charts)
+   - **Health check**: `http://localhost:8000/health`
+   - **Interactive Swagger API docs**: `http://localhost:8000/docs`
+
 
 ---
 
