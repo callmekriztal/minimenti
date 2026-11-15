@@ -1,6 +1,8 @@
-# Mini Mentimeter (Backend)
+# Mini Mentimeter
 
-A lightweight live polling API designed for interactive presentations and voting sessions.
+[![CI](https://github.com/callmekriztal/minimenti/actions/workflows/ci.yml/badge.svg)](https://github.com/callmekriztal/minimenti/actions/workflows/ci.yml)
+
+A lightweight live polling application and API designed for interactive presentations and real-time voting sessions.
 
 ## Tech Stack
 - **Language**: Python 3.12

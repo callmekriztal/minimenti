@@ -161,6 +161,19 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Render Blueprint `render.yaml`).
 - **Rationale**: Provides declarative Infrastructure-as-Code (`render.yaml`) that can be deployed by anyone or an interviewer directly from GitHub with zero setup hassle, native SSE support, and an automated PostgreSQL connection.
 
+### Decision 11: CI/CD Pipeline Architecture & Test Automation
+- **Date**: 2026-11-15
+- **Question**: How should continuous integration and continuous delivery (CI/CD) be structured for Mini Mentimeter?
+- **Options Considered**:
+  1. *Option 1 (Complete Automated CI: Backend Tests + Frontend Type/Build Checks + Docker Build)*: Multi-job GitHub Actions workflow validating backend (`pytest`, `ruff`), frontend (`tsc --noEmit`, `npm run build`), and multi-stage Docker build.
+     - *Pros*: Comprehensive safety net covering all layers of the stack; guarantees zero broken builds or runtime regressions reach `main`; provides clean GitHub checkmark status badges.
+     - *Cons*: Takes ~1-2 minutes per push across parallel runner jobs.
+  2. *Option 2 (Minimal Backend-Only CI)*: Single-job GitHub Actions workflow running only `pytest`.
+     - *Pros*: Very fast run times.
+     - *Cons*: Does not catch frontend type regressions or broken npm package dependencies.
+- **Chosen Option**: Option 1 (Complete Automated CI: Backend + Frontend + Docker Build).
+- **Rationale**: Demonstrates rigorous engineering discipline for a student portfolio, ensuring that both Python backend services and React frontend assets are continuously tested and buildable in Docker.
+
 
 
 
