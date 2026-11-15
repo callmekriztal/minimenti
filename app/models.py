@@ -15,10 +15,43 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 
+import random
+import string
+
+
+def generate_join_code() -> str:
+    """Generate a clean, readable 6-digit numeric room code."""
+    return "".join(random.choices(string.digits, k=6))
+
+
+class Presentation(Base):
+    __tablename__ = "presentations"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    join_code: Mapped[str] = mapped_column(String(10), unique=True, index=True, nullable=False, default=generate_join_code)
+    admin_key: Mapped[uuid.UUID] = mapped_column(Uuid, default=uuid.uuid4, nullable=False)
+    active_poll_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_finished: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    polls: Mapped[list["Poll"]] = relationship(
+        back_populates="presentation",
+        cascade="all, delete-orphan",
+        order_by="Poll.position",
+    )
+
+
 class Poll(Base):
     __tablename__ = "polls"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    presentation_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("presentations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     question: Mapped[str] = mapped_column(String(500), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -30,6 +63,7 @@ class Poll(Base):
     # Decision 6: Secret token held by creator to manage poll lifecycle
     admin_key: Mapped[uuid.UUID] = mapped_column(Uuid, default=uuid.uuid4, nullable=False)
 
+    presentation: Mapped["Presentation | None"] = relationship(back_populates="polls")
     options: Mapped[list["Option"]] = relationship(
         back_populates="poll",
         cascade="all, delete-orphan",

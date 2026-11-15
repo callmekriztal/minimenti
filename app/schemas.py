@@ -49,6 +49,8 @@ class PollCreate(BaseModel):
 
 class PollRead(BaseModel):
     id: uuid.UUID
+    presentation_id: uuid.UUID | None = None
+    position: int = 0
     question: str
     created_at: datetime
     closes_at: datetime | None
@@ -61,7 +63,6 @@ class PollRead(BaseModel):
 class PollCreatedRead(PollRead):
     # Decision 6: Secret key returned only to creator upon creation
     admin_key: uuid.UUID
-
 
 
 class VoteCreate(BaseModel):
@@ -104,4 +105,49 @@ class PollResultsRead(BaseModel):
     is_closed: bool
     total_votes: int
     results: list[OptionResultRead]
+
+
+class PresentationCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255, description="Presentation title")
+    polls: list[PollCreate] = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="List of poll questions in the presentation",
+    )
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("Title cannot be empty")
+        return trimmed
+
+
+class PresentationRead(BaseModel):
+    id: uuid.UUID
+    title: str
+    join_code: str
+    active_poll_index: int
+    is_finished: bool
+    created_at: datetime
+    polls: list[PollRead]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PresentationCreatedRead(PresentationRead):
+    admin_key: uuid.UUID
+
+
+class PresentationStateRead(BaseModel):
+    presentation_id: uuid.UUID
+    title: str
+    join_code: str
+    active_poll_index: int
+    total_polls: int
+    is_finished: bool
+    active_poll: PollRead | None
+    results: PollResultsRead | None
 

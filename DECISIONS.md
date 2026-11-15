@@ -187,6 +187,22 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Interactive Click-to-Copy Button + Projector QR Code Modal).
 - **Rationale**: Replicates the signature Mentimeter experience where in-person presentation attendees point their mobile camera at the slide to join instantly without typing.
 
+### Decision 13: Multi-Question Presentation Decks & Real-Time Slide Stepping
+- **Date**: 2026-11-15
+- **Question**: How should multi-question interactive presentations be structured so participants join once and stay synchronized as the presenter advances through slides?
+- **Options Considered**:
+  1. *Option 1 (Presentation Deck Entity with Short 6-Digit Join Code & SSE Sync)*: Introduce a `Presentation` model that groups multiple ordered `Poll` questions, identified by a clean 6-digit room code (e.g. `123 456`) and a UUID. The presenter controls `active_poll_index`. When the presenter advances to the next question, the SSE stream broadcasts a `slide_change` event, immediately transitioning all audience phones to the new question without reloading.
+     - *Pros*: Full authentic Mentimeter/Kahoot experience; audiences enter a simple 6-digit code or scan one QR code for the entire session; presenter controls the flow from slide to slide with live navigation controls (`Previous`, `Next`, `Finish`).
+     - *Cons*: Requires a new `presentations` table, migration, and updated UI to author and navigate multiple questions.
+  2. *Option 2 (Single-Poll Additions During Session)*: Presenter creates questions ad-hoc one by one during a live stream.
+     - *Pros*: Lighter database schema.
+     - *Cons*: Clunky for presenters who want to prepare slides ahead of a meeting/lecture.
+  3. *Option 3 (Independent Single Polls Only)*: Keep polls independent with no overarching presentation concept.
+     - *Pros*: No schema changes.
+     - *Cons*: Poor user experience: audience must re-scan and navigate to a brand new URL for every single question.
+- **Chosen Option**: Option 1 (Presentation Deck Entity with Short 6-Digit Join Code & SSE Sync).
+- **Rationale**: Delivers the core live presentation workflow expected of interactive polling tools: prepare a deck ahead of time, audience joins once with a memorable 6-digit code or QR code, and the presenter orchestrates real-time slide transitions across all connected devices.
+
 
 
 

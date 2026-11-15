@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import polls
+from app.routers import polls, presentations
 
 app = FastAPI(
     title="Mini Mentimeter API",
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(polls.router)
+app.include_router(presentations.router)
 
 
 @app.get("/health", tags=["health"])

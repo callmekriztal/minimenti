@@ -28,3 +28,25 @@ export interface PollResults {
   total_votes: number;
   results: OptionResult[];
 }
+
+export interface PresentationState {
+  presentation_id: string;
+  title: string;
+  join_code: string;
+  active_poll_index: number;
+  total_polls: number;
+  is_finished: boolean;
+  active_poll: PollRead | null;
+  results: PollResults | null;
+}
+
+export interface PresentationCreated {
+  id: string;
+  title: string;
+  join_code: string;
+  active_poll_index: number;
+  is_finished: boolean;
+  created_at: string;
+  polls: PollRead[];
+  admin_key: string;
+}

@@ -208,6 +208,13 @@ def cast_vote(
     updated_results = _compute_poll_results(poll, db)
     broadcaster.broadcast(poll_id, updated_results.model_dump_json())
 
+    # If poll belongs to a presentation, also notify the presentation channel
+    if poll.presentation_id:
+        broadcaster.broadcast(
+            poll.presentation_id,
+            updated_results.model_dump_json(),
+        )
+
     return vote
 
 
