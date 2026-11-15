@@ -1,11 +1,20 @@
+from datetime import datetime, timezone
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.db import get_db
-from app.models import Option, Poll
-from app.schemas import PollCreate, PollRead
+from app.models import Option, Poll, Vote
+from app.schemas import (
+    OptionResultRead,
+    PollCreate,
+    PollRead,
+    PollResultsRead,
+    VoteCreate,
+    VoteRead,
+)
 
 router = APIRouter(prefix="/polls", tags=["polls"])
 
@@ -48,3 +57,120 @@ def get_poll(poll_id: uuid.UUID, db: Session = Depends(get_db)):
         )
 
     return poll
+
+
+@router.post("/{poll_id}/votes", response_model=VoteRead, status_code=status.HTTP_201_CREATED)
+def cast_vote(
+    poll_id: uuid.UUID,
+    payload: VoteCreate,
+    db: Session = Depends(get_db),
+):
+    poll = db.scalar(select(Poll).where(Poll.id == poll_id))
+    if poll is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Poll not found",
+        )
+
+    now = datetime.now(timezone.utc)
+    is_expired = False
+    if poll.closes_at is not None:
+        closing_time = (
+            poll.closes_at
+            if poll.closes_at.tzinfo
+            else poll.closes_at.replace(tzinfo=timezone.utc)
+        )
+        is_expired = closing_time <= now
+
+    if poll.is_closed or is_expired:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Poll is closed",
+        )
+
+    # Validate that option belongs to this poll
+    option = db.scalar(
+        select(Option).where(
+            Option.id == payload.option_id,
+            Option.poll_id == poll_id,
+        )
+    )
+    if option is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid option for this poll",
+        )
+
+    vote = Vote(
+        poll_id=poll_id,
+        option_id=payload.option_id,
+        voter_token=payload.voter_token,
+    )
+    db.add(vote)
+    try:
+        db.commit()
+        db.refresh(vote)
+    except IntegrityError:
+        # Decision 1 & 2: Database unique constraint enforces one vote per token per poll
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You have already voted in this poll",
+        )
+
+    return vote
+
+
+@router.get("/{poll_id}/results", response_model=PollResultsRead)
+def get_poll_results(poll_id: uuid.UUID, db: Session = Depends(get_db)):
+    poll = db.scalar(select(Poll).where(Poll.id == poll_id))
+    if poll is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Poll not found",
+        )
+
+    # Decision 3: On-the-fly SQL aggregation using outerjoin to include 0-vote options
+    stmt = (
+        select(
+            Option.id,
+            Option.text,
+            Option.position,
+            func.count(Vote.id).label("vote_count"),
+        )
+        .outerjoin(Vote, Option.id == Vote.option_id)
+        .where(Option.poll_id == poll_id)
+        .group_by(Option.id, Option.text, Option.position)
+        .order_by(Option.position)
+    )
+    rows = db.execute(stmt).all()
+
+    option_results = [
+        OptionResultRead(
+            id=row.id,
+            text=row.text,
+            position=row.position,
+            vote_count=row.vote_count,
+        )
+        for row in rows
+    ]
+    total_votes = sum(item.vote_count for item in option_results)
+
+    now = datetime.now(timezone.utc)
+    is_expired = False
+    if poll.closes_at is not None:
+        closing_time = (
+            poll.closes_at
+            if poll.closes_at.tzinfo
+            else poll.closes_at.replace(tzinfo=timezone.utc)
+        )
+        is_expired = closing_time <= now
+
+    return PollResultsRead(
+        poll_id=poll.id,
+        question=poll.question,
+        is_closed=poll.is_closed or is_expired,
+        total_votes=total_votes,
+        results=option_results,
+    )
+

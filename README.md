@@ -135,3 +135,51 @@ Creates a new poll with 2 to 10 options.
 ### `GET /polls/{id}`
 Fetches an existing poll and its options sorted by position.
 - **Response**: `200 OK` or `404 Not Found` if the poll does not exist.
+
+### `POST /polls/{id}/votes`
+Casts a single vote for an option using a client-generated browser token (`voter_token`).
+- **Request Body**:
+  ```json
+  {
+    "option_id": 1,
+    "voter_token": "browser-session-uuid-1234"
+  }
+  ```
+- **Responses**:
+  - `201 Created`: Vote cast successfully.
+  - `400 Bad Request`: Poll is closed/expired or option does not belong to poll.
+  - `404 Not Found`: Poll does not exist.
+  - `409 Conflict`: This browser/token has already voted in this poll.
+
+### `GET /polls/{id}/results`
+Fetches aggregate poll results calculated on-the-fly via SQL aggregation.
+- **Response**: `200 OK`
+  ```json
+  {
+    "poll_id": "c1f71dfc-76e3-4ae8-b0a5-296baefc0808",
+    "question": "What is your primary programming language?",
+    "is_closed": false,
+    "total_votes": 3,
+    "results": [
+      {
+        "id": 1,
+        "text": "Python",
+        "position": 0,
+        "vote_count": 2
+      },
+      {
+        "id": 2,
+        "text": "Rust",
+        "position": 1,
+        "vote_count": 1
+      },
+      {
+        "id": 3,
+        "text": "Go",
+        "position": 2,
+        "vote_count": 0
+      }
+    ]
+  }
+  ```
+

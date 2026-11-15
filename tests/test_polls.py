@@ -137,3 +137,145 @@ def test_reject_empty_option_text(client):
         json={"question": "Valid question?", "options": ["Option 1", "   "]},
     )
     assert res_spaces.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_cast_vote_success(client):
+    poll_res = client.post(
+        "/polls",
+        json={"question": "Cat or Dog?", "options": ["Cat", "Dog"]},
+    )
+    poll_id = poll_res.json()["id"]
+    option_id = poll_res.json()["options"][0]["id"]
+
+    vote_res = client.post(
+        f"/polls/{poll_id}/votes",
+        json={"option_id": option_id, "voter_token": "browser-session-1"},
+    )
+    assert vote_res.status_code == status.HTTP_201_CREATED
+    data = vote_res.json()
+    assert data["poll_id"] == poll_id
+    assert data["option_id"] == option_id
+    assert "id" in data
+    assert "created_at" in data
+
+
+def test_cast_vote_duplicate_rejected(client):
+    poll_res = client.post(
+        "/polls",
+        json={"question": "Tea or Coffee?", "options": ["Tea", "Coffee"]},
+    )
+    poll_id = poll_res.json()["id"]
+    option_tea = poll_res.json()["options"][0]["id"]
+    option_coffee = poll_res.json()["options"][1]["id"]
+
+    # First vote succeeds
+    res1 = client.post(
+        f"/polls/{poll_id}/votes",
+        json={"option_id": option_tea, "voter_token": "same-device-token"},
+    )
+    assert res1.status_code == status.HTTP_201_CREATED
+
+    # Second vote from the same voter token fails with 409 Conflict
+    res2 = client.post(
+        f"/polls/{poll_id}/votes",
+        json={"option_id": option_coffee, "voter_token": "same-device-token"},
+    )
+    assert res2.status_code == status.HTTP_409_CONFLICT
+    assert res2.json()["detail"] == "You have already voted in this poll"
+
+
+def test_same_voter_different_polls(client):
+    # Same voter can vote in two separate polls
+    p1 = client.post("/polls", json={"question": "Q1?", "options": ["A", "B"]}).json()
+    p2 = client.post("/polls", json={"question": "Q2?", "options": ["C", "D"]}).json()
+
+    token = "global-voter-id"
+    res1 = client.post(
+        f"/polls/{p1['id']}/votes",
+        json={"option_id": p1["options"][0]["id"], "voter_token": token},
+    )
+    assert res1.status_code == status.HTTP_201_CREATED
+
+    res2 = client.post(
+        f"/polls/{p2['id']}/votes",
+        json={"option_id": p2["options"][0]["id"], "voter_token": token},
+    )
+    assert res2.status_code == status.HTTP_201_CREATED
+
+
+def test_cast_vote_invalid_option(client):
+    p1 = client.post("/polls", json={"question": "Q1?", "options": ["A", "B"]}).json()
+    p2 = client.post("/polls", json={"question": "Q2?", "options": ["C", "D"]}).json()
+
+    # Voting in p1 with an option from p2 must be rejected
+    foreign_option_id = p2["options"][0]["id"]
+    res = client.post(
+        f"/polls/{p1['id']}/votes",
+        json={"option_id": foreign_option_id, "voter_token": "device-1"},
+    )
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.json()["detail"] == "Invalid option for this poll"
+
+
+def test_cast_vote_nonexistent_poll(client):
+    random_id = uuid.uuid4()
+    res = client.post(
+        f"/polls/{random_id}/votes",
+        json={"option_id": 9999, "voter_token": "device-1"},
+    )
+    assert res.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_cast_vote_closed_poll(client, db_session):
+    from app.models import Poll as PollModel
+
+    poll_res = client.post(
+        "/polls",
+        json={"question": "Closed?", "options": ["Yes", "No"]},
+    )
+    poll_id = poll_res.json()["id"]
+    option_id = poll_res.json()["options"][0]["id"]
+
+    # Manually close the poll in DB
+    db_poll = db_session.get(PollModel, uuid.UUID(poll_id))
+    db_poll.is_closed = True
+    db_session.commit()
+
+    res = client.post(
+        f"/polls/{poll_id}/votes",
+        json={"option_id": option_id, "voter_token": "device-closed"},
+    )
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.json()["detail"] == "Poll is closed"
+
+
+def test_get_poll_results_aggregation(client):
+    poll_res = client.post(
+        "/polls",
+        json={"question": "Color?", "options": ["Red", "Blue", "Green"]},
+    )
+    poll_id = poll_res.json()["id"]
+    options = poll_res.json()["options"]
+    opt_red = options[0]["id"]
+    opt_blue = options[1]["id"]
+    opt_green = options[2]["id"]
+
+    # Cast 2 votes for Red, 1 for Blue, 0 for Green
+    client.post(f"/polls/{poll_id}/votes", json={"option_id": opt_red, "voter_token": "v1"})
+    client.post(f"/polls/{poll_id}/votes", json={"option_id": opt_red, "voter_token": "v2"})
+    client.post(f"/polls/{poll_id}/votes", json={"option_id": opt_blue, "voter_token": "v3"})
+
+    results_res = client.get(f"/polls/{poll_id}/results")
+    assert results_res.status_code == status.HTTP_200_OK
+
+    data = results_res.json()
+    assert data["poll_id"] == poll_id
+    assert data["total_votes"] == 3
+    assert len(data["results"]) == 3
+
+    # Check that option with 0 votes is properly included via outerjoin
+    counts = {r["text"]: r["vote_count"] for r in data["results"]}
+    assert counts["Red"] == 2
+    assert counts["Blue"] == 1
+    assert counts["Green"] == 0
+
