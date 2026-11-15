@@ -82,7 +82,24 @@ Each entry documents the core question, alternatives considered with trade-offs,
      - *Pros*: Standard horizontal scaling pattern.
      - *Cons*: Adds infrastructure overhead (Redis service container, connection management) unnecessary for single-instance learning scope.
 - **Chosen Option**: Option 1 (In-Memory `asyncio.Queue` Broadcaster).
-- **Rationale*: Minimal moving parts, highly educational and readable, and directly demonstrates Python asynchronous programming patterns without external operational overhead.
+- **Rationale**: Minimal moving parts, highly educational and readable, and directly demonstrates Python asynchronous programming patterns without external operational overhead.
+
+### Decision 6: Poll Administration & Creator Authorization
+- **Date**: 2026-11-15
+- **Question**: How do we authorize the creator to close a poll or manage voting without full user accounts?
+- **Options Considered**:
+  1. *Option 1 (Creator Secret Key / `admin_key`)*: Generate an `admin_key` (UUID) returned only to the creator upon creation. Require `X-Admin-Key` header (or request body) to close the poll.
+     - *Pros*: Zero friction (no accounts/passwords), minimal boilerplate, cleanly separates public shareable voter links from creator control links.
+     - *Cons*: If the creator loses their admin key, they cannot recover administrative access.
+  2. *Option 2 (Full User Authentication / JWT)*: Require account creation with email/password or OAuth.
+     - *Pros*: Central dashboard of polls created across sessions.
+     - *Cons*: High friction and extensive boilerplate (users table, password hashing, JWTs) distracting from core live polling mechanics.
+  3. *Option 3 (Time-Based Expiration Only)*: Polls close strictly based on `closes_at` timer.
+     - *Pros*: No authorization needed.
+     - *Cons*: Inflexible for live presenters who need to manually close voting on demand.
+- **Chosen Option**: Option 1 (Creator Secret Key / `admin_key`).
+- **Rationale**: Provides secure administrative protection for poll lifecycle actions while preserving zero-friction guest poll creation and keeping the codebase small and readable.
+
 
 
 

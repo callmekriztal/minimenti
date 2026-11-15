@@ -328,3 +328,60 @@ def test_broadcaster_subscribe_broadcast_unsubscribe():
     assert test_id not in b._subscribers
 
 
+def test_admin_key_returned_on_create_and_hidden_on_get(client):
+    res = client.post(
+        "/polls",
+        json={"question": "Admin key test?", "options": ["A", "B"]},
+    )
+    assert res.status_code == status.HTTP_201_CREATED
+    data = res.json()
+    assert "admin_key" in data
+    admin_key = data["admin_key"]
+    poll_id = data["id"]
+    uuid.UUID(admin_key)  # Ensure valid UUID
+
+    # GET /polls/{id} MUST NOT leak the admin_key to voters
+    get_res = client.get(f"/polls/{poll_id}")
+    assert get_res.status_code == status.HTTP_200_OK
+    assert "admin_key" not in get_res.json()
+
+
+def test_close_poll_with_admin_key(client):
+    res = client.post(
+        "/polls",
+        json={"question": "Close test?", "options": ["A", "B"]},
+    )
+    poll_id = res.json()["id"]
+    admin_key = res.json()["admin_key"]
+    opt_id = res.json()["options"][0]["id"]
+
+    # Close with missing header fails with 403
+    fail_res = client.post(f"/polls/{poll_id}/close")
+    assert fail_res.status_code == status.HTTP_403_FORBIDDEN
+
+    # Close with wrong admin key fails with 403
+    wrong_key = str(uuid.uuid4())
+    fail_res2 = client.post(
+        f"/polls/{poll_id}/close",
+        headers={"X-Admin-Key": wrong_key},
+    )
+    assert fail_res2.status_code == status.HTTP_403_FORBIDDEN
+
+    # Close with valid admin key succeeds
+    close_res = client.post(
+        f"/polls/{poll_id}/close",
+        headers={"X-Admin-Key": admin_key},
+    )
+    assert close_res.status_code == status.HTTP_200_OK
+    assert close_res.json()["is_closed"] is True
+
+    # Subsequent vote attempts must be rejected
+    vote_res = client.post(
+        f"/polls/{poll_id}/votes",
+        json={"option_id": opt_id, "voter_token": "token-after-close"},
+    )
+    assert vote_res.status_code == status.HTTP_400_BAD_REQUEST
+    assert vote_res.json()["detail"] == "Poll is closed"
+
+
+

@@ -27,6 +27,8 @@ class Poll(Base):
         DateTime(timezone=True), nullable=True
     )
     is_closed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Decision 6: Secret token held by creator to manage poll lifecycle
+    admin_key: Mapped[uuid.UUID] = mapped_column(Uuid, default=uuid.uuid4, nullable=False)
 
     options: Mapped[list["Option"]] = relationship(
         back_populates="poll",

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import asyncio
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -13,6 +13,7 @@ from app.models import Option, Poll, Vote
 from app.schemas import (
     OptionResultRead,
     PollCreate,
+    PollCreatedRead,
     PollRead,
     PollResultsRead,
     VoteCreate,
@@ -68,7 +69,7 @@ def _compute_poll_results(poll: Poll, db: Session) -> PollResultsRead:
     )
 
 
-@router.post("", response_model=PollRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=PollCreatedRead, status_code=status.HTTP_201_CREATED)
 def create_poll(payload: PollCreate, db: Session = Depends(get_db)):
     poll = Poll(
         question=payload.question,
@@ -104,6 +105,42 @@ def get_poll(poll_id: uuid.UUID, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Poll not found",
         )
+
+    return poll
+
+
+@router.post("/{poll_id}/close", response_model=PollRead)
+def close_poll(
+    poll_id: uuid.UUID,
+    x_admin_key: uuid.UUID | None = Header(None, alias="X-Admin-Key"),
+    db: Session = Depends(get_db),
+):
+    stmt = (
+        select(Poll)
+        .options(selectinload(Poll.options))
+        .where(Poll.id == poll_id)
+    )
+    poll = db.scalar(stmt)
+    if poll is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Poll not found",
+        )
+
+    # Decision 6: Validate creator authorization token
+    if x_admin_key is None or x_admin_key != poll.admin_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid or missing admin key",
+        )
+
+    poll.is_closed = True
+    db.commit()
+    db.refresh(poll)
+
+    # Broadcast updated results with is_closed=True to active SSE viewers
+    updated_results = _compute_poll_results(poll, db)
+    broadcaster.broadcast(poll_id, updated_results.model_dump_json())
 
     return poll
 

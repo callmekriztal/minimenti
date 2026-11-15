@@ -58,6 +58,12 @@ class PollRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PollCreatedRead(PollRead):
+    # Decision 6: Secret key returned only to creator upon creation
+    admin_key: uuid.UUID
+
+
+
 class VoteCreate(BaseModel):
     option_id: int = Field(..., description="ID of the option to vote for")
     voter_token: str = Field(

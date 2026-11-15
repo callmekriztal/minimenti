@@ -104,7 +104,7 @@ Creates a new poll with 2 to 10 options.
     "closes_at": null
   }
   ```
-- **Response**: `201 Created`
+- **Response**: `201 Created` (includes secret `admin_key` only for the creator)
   ```json
   {
     "id": "c1f71dfc-76e3-4ae8-b0a5-296baefc0808",
@@ -112,6 +112,7 @@ Creates a new poll with 2 to 10 options.
     "created_at": "2026-11-15T06:18:22.123456Z",
     "closes_at": null,
     "is_closed": false,
+    "admin_key": "9a12c412-f018-49f3-8b71-e8d781b0a881",
     "options": [
       {
         "id": 1,
@@ -186,6 +187,14 @@ Server-Sent Events (SSE) endpoint for live presenter screens. Pushes instant upd
 - **Protocol**: HTTP SSE (`Content-Type: text/event-stream`)
 - **Initial Connection**: Immediately pushes current results as the first event.
 - **Heartbeat**: Pushes `: ping` comments every 15s to keep connections alive through proxies and firewalls.
-- **Resource Footprint**: Streams hold **zero** database connections while open.
+### `POST /polls/{id}/close`
+Closes a poll to prevent any further voting.
+- **Authorization**: Requires `X-Admin-Key: <admin_key>` header (returned upon creation).
+- **Responses**:
+  - `200 OK`: Poll successfully closed.
+  - `403 Forbidden`: Missing or incorrect admin key.
+  - `404 Not Found`: Poll does not exist.
+- **Broadcast**: Automatically pushes an updated event to any connected SSE viewers reflecting `is_closed: true`.
+
 
 
