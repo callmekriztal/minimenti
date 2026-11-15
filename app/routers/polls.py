@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.broadcaster import broadcaster
 from app.db import get_db
-from app.models import Option, Poll, Vote
+from app.models import Option, Poll, Presentation, Vote
 from app.schemas import (
     OptionResultRead,
     PollCreate,
@@ -208,12 +208,21 @@ def cast_vote(
     updated_results = _compute_poll_results(poll, db)
     broadcaster.broadcast(poll_id, updated_results.model_dump_json())
 
-    # If poll belongs to a presentation, also notify the presentation channel
+    # If poll belongs to a presentation, also notify the presentation channel with updated presentation state
     if poll.presentation_id:
-        broadcaster.broadcast(
-            poll.presentation_id,
-            updated_results.model_dump_json(),
+        from app.routers.presentations import _build_presentation_state
+        pres_stmt = (
+            select(Presentation)
+            .options(selectinload(Presentation.polls).selectinload(Poll.options))
+            .where(Presentation.id == poll.presentation_id)
         )
+        pres = db.scalar(pres_stmt)
+        if pres:
+            pres_state = _build_presentation_state(pres, db)
+            broadcaster.broadcast(
+                poll.presentation_id,
+                pres_state.model_dump_json(),
+            )
 
     return vote
 

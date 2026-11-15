@@ -3,6 +3,22 @@ from collections import defaultdict
 import uuid
 
 
+class _ChannelDict(dict):
+    """Custom dictionary allowing lookup by either uuid.UUID or str."""
+
+    def __getitem__(self, item):
+        return super().__getitem__(str(item))
+
+    def __setitem__(self, key, value):
+        super().__setitem__(str(key), value)
+
+    def __contains__(self, item):
+        return super().__contains__(str(item))
+
+    def __delitem__(self, key):
+        super().__delitem__(str(key))
+
+
 class Broadcaster:
     """Manages in-memory pub/sub queues for Server-Sent Events (SSE).
     
@@ -12,10 +28,12 @@ class Broadcaster:
     """
 
     def __init__(self) -> None:
-        self._subscribers: dict[uuid.UUID | str, set[asyncio.Queue[str]]] = defaultdict(set)
+        self._subscribers: dict[uuid.UUID | str, set[asyncio.Queue[str]]] = _ChannelDict()
 
     def subscribe(self, channel_id: uuid.UUID | str) -> asyncio.Queue[str]:
         queue: asyncio.Queue[str] = asyncio.Queue()
+        if channel_id not in self._subscribers:
+            self._subscribers[channel_id] = set()
         self._subscribers[channel_id].add(queue)
         return queue
 
