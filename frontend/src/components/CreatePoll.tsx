@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, ArrowRight, Copy, Check, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Copy, Check, ExternalLink, Sparkles } from 'lucide-react';
 import { PollRead } from '../types';
 
 interface CreatePollProps {
@@ -85,64 +85,62 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
     const presenterUrl = `${window.location.origin}/?view=present&poll_id=${createdPoll.id}&admin_key=${createdPoll.admin_key}`;
 
     return (
-      <div className="w-full max-w-xl mx-auto bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20 text-white font-black text-2xl">
+      <div className="w-full max-w-lg mx-auto glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 bg-palette-grape rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg text-palette-blush font-black text-xl">
             ✓
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Your Poll is Live!</h2>
-          <p className="text-slate-400 text-sm mt-1">Open the presenter screen on your projector, and share the voter link with your audience.</p>
+          <h2 className="text-2xl font-black text-palette-blush tracking-tight">Poll is Live</h2>
+          <p className="text-palette-slate text-xs mt-1">Open presenter view or share the link with voters.</p>
         </div>
 
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 mb-6">
           {/* Voter Link */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 transition hover:border-slate-700">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Audience Voting Link</span>
-              <span className="text-[10px] text-slate-500 font-normal">Share this with voters</span>
-            </div>
+          <div className="bg-palette-charcoal/80 border border-palette-blueslate/40 rounded-2xl p-3.5">
+            <span className="text-[10px] font-bold text-palette-slate uppercase tracking-wider block mb-1.5">
+              Audience Voting Link
+            </span>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={voterUrl}
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-indigo-300 select-all focus:outline-none"
+                className="flex-1 bg-palette-charcoal border border-palette-blueslate/30 rounded-xl px-3 py-2 text-xs font-mono text-palette-blush select-all focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => copyToClipboard(voterUrl, 'voter')}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/30"
+                className="px-3.5 py-2 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
               >
-                {copiedLink === 'voter' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedLink === 'voter' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedLink === 'voter' ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
 
           {/* Presenter Link */}
-          <div className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-900/40 rounded-2xl p-4 transition hover:border-indigo-700/50">
-            <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Presenter Screen (With Admin Controls)</span>
-              <span className="text-[10px] text-indigo-300/70 font-normal">For projector / slide display</span>
-            </div>
+          <div className="bg-palette-charcoal/80 border border-palette-blueslate/40 rounded-2xl p-3.5">
+            <span className="text-[10px] font-bold text-palette-slate uppercase tracking-wider block mb-1.5">
+              Presenter Screen (With Admin Controls)
+            </span>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={presenterUrl}
-                className="flex-1 bg-slate-950/80 border border-indigo-900/50 rounded-xl px-3 py-2 text-xs font-mono text-indigo-200 select-all focus:outline-none"
+                className="flex-1 bg-palette-charcoal border border-palette-blueslate/30 rounded-xl px-3 py-2 text-xs font-mono text-palette-blush select-all focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => copyToClipboard(presenterUrl, 'presenter')}
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+                className="px-3.5 py-2 bg-palette-blueslate/40 hover:bg-palette-blueslate/60 text-palette-blush rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-palette-blueslate/50"
               >
-                {copiedLink === 'presenter' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedLink === 'presenter' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedLink === 'presenter' ? 'Copied' : 'Copy'}
               </button>
               <a
                 href={presenterUrl}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/30"
+                className="px-3.5 py-2 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 Open
@@ -151,119 +149,105 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setCreatedPoll(null)}
-            className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm rounded-xl transition"
-          >
-            Create Another Poll
-          </button>
-          <a
-            href={presenterUrl}
-            className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
-          >
-            <span>Launch Presentation</span>
-            <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
+        <button
+          type="button"
+          onClick={() => setCreatedPoll(null)}
+          className="w-full py-3 px-4 bg-palette-blueslate/30 hover:bg-palette-blueslate/40 text-palette-blush font-semibold text-xs rounded-xl transition"
+        >
+          Create Another Poll
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl shadow-indigo-950/20">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold rounded-full uppercase tracking-wider mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
-          Live Interactive Polling
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">Create a Poll</h1>
-        <p className="text-slate-400 text-sm mt-1.5">Ask a question, collect live votes, and project instant animated results.</p>
+    <div className="w-full max-w-lg mx-auto glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl">
+      <div className="text-center mb-6">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-palette-grape/30 border border-palette-grape/40 text-palette-blush text-[11px] font-bold rounded-full uppercase tracking-wider mb-2">
+          <Sparkles className="w-3 h-3 text-palette-slate" />
+          Single Question
+        </span>
+        <h2 className="text-2xl sm:text-3xl font-black text-palette-blush tracking-tight">Create a Quick Poll</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="p-3 bg-palette-grape/40 border border-palette-blush/30 rounded-xl text-palette-blush text-xs font-medium">
+            {error}
+          </div>
+        )}
+
         <div>
-          <label htmlFor="poll-question" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+          <label htmlFor="poll-question" className="block text-xs font-bold text-palette-slate uppercase tracking-wider mb-2">
             Question
           </label>
           <input
             id="poll-question"
             type="text"
-            required
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="e.g. What is your favourite database?"
-            className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 px-4 py-3.5 rounded-2xl text-base transition outline-none"
+            placeholder="e.g. Which topic should we review today?"
+            className="w-full bg-palette-charcoal/90 border border-palette-blueslate/40 focus:border-palette-blush text-palette-blush placeholder-palette-slate/50 px-4 py-3 rounded-2xl text-sm transition outline-none"
           />
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Options ({options.length}/10)
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold text-palette-slate uppercase tracking-wider">
+              Options
             </label>
-            <span className="text-[11px] text-slate-500">Min 2, Max 10</span>
+            <span className="text-[11px] text-palette-slate/70">Min 2, Max 10</span>
           </div>
 
-          <div className="space-y-2.5">
-            {options.map((opt, idx) => (
-              <div key={idx} className="flex items-center gap-2 group">
-                <div className="w-8 h-8 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-xs font-bold text-slate-400">
-                  {idx + 1}
+          <div className="space-y-2">
+            {options.map((opt, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-palette-blueslate/20 border border-palette-blueslate/30 flex items-center justify-center text-xs font-bold text-palette-slate">
+                  {String.fromCharCode(65 + index)}
                 </div>
                 <input
                   type="text"
-                  required
                   value={opt}
-                  onChange={(e) => handleOptionChange(idx, e.target.value)}
-                  placeholder={`Option ${idx + 1}`}
-                  className="flex-1 bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 px-4 py-2.5 rounded-xl text-sm transition outline-none"
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  placeholder={`Option ${index + 1}`}
+                  className="flex-1 bg-palette-charcoal/90 border border-palette-blueslate/40 focus:border-palette-blush text-palette-blush placeholder-palette-slate/50 px-3.5 py-2 rounded-xl text-xs transition outline-none"
                 />
                 {options.length > 2 && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveOption(idx)}
-                    className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition"
-                    title="Remove option"
+                    onClick={() => handleRemoveOption(index)}
+                    className="p-1.5 text-palette-slate hover:text-palette-blush transition"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
             ))}
-          </div>
 
-          {options.length < 10 && (
-            <button
-              type="button"
-              onClick={handleAddOption}
-              className="mt-3.5 w-full py-2.5 px-4 bg-slate-800/50 hover:bg-slate-800 border border-dashed border-slate-700/80 hover:border-indigo-500/60 text-slate-300 hover:text-indigo-300 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Option
-            </button>
-          )}
+            {options.length < 10 && (
+              <button
+                type="button"
+                onClick={handleAddOption}
+                className="mt-2 w-full py-2 bg-palette-blueslate/20 hover:bg-palette-blueslate/30 border border-dashed border-palette-blueslate/40 text-palette-slate hover:text-palette-blush text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Option
+              </button>
+            )}
+          </div>
         </div>
-
-        {error && (
-          <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-300 rounded-xl text-xs flex items-center gap-2 font-medium">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/30 transition duration-150 flex items-center justify-center gap-2 group disabled:opacity-50"
+          className="w-full min-h-[50px] px-6 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush font-bold text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
         >
           {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-palette-blush/30 border-t-palette-blush rounded-full animate-spin" />
           ) : (
             <>
-              <span>Launch Live Poll</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              Launch Poll
+              <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>

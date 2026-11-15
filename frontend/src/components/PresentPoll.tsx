@@ -8,17 +8,13 @@ interface PresentPollProps {
   adminKey?: string | null;
 }
 
-const OPTION_COLORS = [
-  { fill: 'bg-indigo-600', text: 'text-indigo-400', badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
-  { fill: 'bg-cyan-600', text: 'text-cyan-400', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' },
-  { fill: 'bg-emerald-600', text: 'text-emerald-400', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-  { fill: 'bg-amber-600', text: 'text-amber-400', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  { fill: 'bg-rose-600', text: 'text-rose-400', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
-  { fill: 'bg-purple-600', text: 'text-purple-400', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-  { fill: 'bg-teal-600', text: 'text-teal-400', badge: 'bg-teal-500/20 text-teal-300 border-teal-500/30' },
-  { fill: 'bg-orange-600', text: 'text-orange-400', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/30' },
-  { fill: 'bg-blue-600', text: 'text-blue-400', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-  { fill: 'bg-pink-600', text: 'text-pink-400', badge: 'bg-pink-500/20 text-pink-300 border-pink-500/30' },
+// Custom 5-color palette mapping
+const PALETTE_OPTIONS = [
+  { fill: 'bg-palette-grape', border: 'border-palette-grape', text: 'text-palette-blush', badge: 'bg-palette-grape/30 border-palette-grape/50 text-palette-blush' },
+  { fill: 'bg-palette-blueslate', border: 'border-palette-blueslate', text: 'text-palette-blush', badge: 'bg-palette-blueslate/30 border-palette-blueslate/50 text-palette-blush' },
+  { fill: 'bg-[#7a5882]', border: 'border-[#7a5882]', text: 'text-palette-blush', badge: 'bg-[#7a5882]/30 border-[#7a5882]/50 text-palette-blush' },
+  { fill: 'bg-[#475b70]', border: 'border-[#475b70]', text: 'text-palette-blush', badge: 'bg-[#475b70]/30 border-[#475b70]/50 text-palette-blush' },
+  { fill: 'bg-palette-charcoal', border: 'border-palette-slate', text: 'text-palette-blush', badge: 'bg-palette-charcoal border-palette-slate/40 text-palette-slate' },
 ];
 
 export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: propAdminKey }) => {
@@ -34,7 +30,7 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
   const voterUrl = `${window.location.origin}/?view=vote&poll_id=${pollId}`;
 
   useEffect(() => {
-    QRCode.toDataURL(voterUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } })
+    QRCode.toDataURL(voterUrl, { width: 320, margin: 2, color: { dark: '#3a4454', light: '#f5dddd' } })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
   }, [voterUrl]);
@@ -46,7 +42,6 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
   };
 
   useEffect(() => {
-    // Decision 4: Connect to Server-Sent Events stream
     const eventSource = new EventSource(`/polls/${pollId}/stream`);
 
     eventSource.onopen = () => {
@@ -107,10 +102,10 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
 
   if (!data) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center justify-center p-6 bg-slate-950 text-white">
-        <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4" />
+      <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-palette-charcoal text-palette-blush">
+        <div className="w-14 h-14 border-4 border-palette-grape/30 border-t-palette-blush rounded-full animate-spin mb-4" />
         <h2 className="text-xl font-bold tracking-tight">Connecting to Live Stream...</h2>
-        <p className="text-slate-400 text-xs mt-1 font-mono">Listening for poll events on /polls/{pollId}/stream</p>
+        <p className="text-palette-slate text-xs mt-1 font-mono">Listening for poll events on /polls/{pollId}/stream</p>
       </div>
     );
   }
@@ -118,21 +113,21 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
   const maxVotes = Math.max(...data.results.map((r) => r.vote_count), 1);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-white p-6 sm:p-12 select-none">
+    <div className="min-h-[100dvh] flex flex-col justify-between bg-palette-charcoal text-palette-blush p-4 sm:p-8 md:p-12 select-none">
       {/* Top Bar */}
-      <header className="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-b border-slate-900 pb-6">
+      <header className="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-b border-palette-blueslate/30 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
+          <div className="w-11 h-11 rounded-2xl bg-palette-grape text-palette-blush font-black text-xl flex items-center justify-center shadow-lg shadow-palette-charcoal/50">
             M
           </div>
           <div>
-            <div className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-              <span>Interactive Presentation</span>
-              <span className="w-1 h-1 rounded-full bg-slate-700" />
-              <span className="text-slate-400 font-mono text-[11px]">Real-Time SSE</span>
+            <div className="text-xs font-black text-palette-blush uppercase tracking-widest flex items-center gap-2">
+              <span>Interactive Poll</span>
+              <span className="w-1 h-1 rounded-full bg-palette-slate" />
+              <span className="text-palette-slate font-mono text-[11px]">Real-Time SSE</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <div className="flex items-center gap-2 text-xs text-palette-slate mt-0.5">
+              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-palette-blush animate-pulse' : 'bg-palette-slate'}`} />
               <span className="font-medium">{connected ? 'Live Connected' : 'Reconnecting...'}</span>
             </div>
           </div>
@@ -141,23 +136,23 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
         {/* Status Indicators & Controls */}
         <div className="flex items-center gap-3">
           {/* Total Votes Counter */}
-          <div className="px-4 py-2 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center gap-2.5 shadow-lg">
-            <Users className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs font-semibold text-slate-300">
-              <strong className="text-white text-base font-black mr-1">{data.total_votes}</strong>
+          <div className="px-4 py-2 glass-panel rounded-2xl flex items-center gap-2.5 shadow-lg border border-palette-blueslate/30">
+            <Users className="w-4 h-4 text-palette-blush" />
+            <span className="text-xs font-semibold text-palette-slate">
+              <strong className="text-palette-blush text-base font-black mr-1">{data.total_votes}</strong>
               {data.total_votes === 1 ? 'vote' : 'votes'}
             </span>
           </div>
 
           {/* Voting Status */}
           {data.is_closed ? (
-            <div className="px-3.5 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <div className="px-3.5 py-2 bg-palette-charcoal/80 border border-palette-slate/40 text-palette-slate rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
               Voting Closed
             </div>
           ) : (
-            <div className="px-3.5 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+            <div className="px-3.5 py-2 bg-palette-grape/25 border border-palette-grape/40 text-palette-blush rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 animate-pulse text-palette-blush" />
               Voting Live
             </div>
           )}
@@ -168,10 +163,10 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
               type="button"
               disabled={closing}
               onClick={handleCloseVoting}
-              className="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-rose-950/50 hover:scale-105 active:scale-95"
+              className="px-4 py-2 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-md active:scale-95"
             >
               {closing ? (
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-3.5 h-3.5 border-2 border-palette-blush/30 border-t-palette-blush rounded-full animate-spin" />
               ) : (
                 <>
                   <ShieldAlert className="w-3.5 h-3.5" />
@@ -185,7 +180,7 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-2xl transition hover:text-white"
+            className="p-2.5 bg-palette-charcoal/80 hover:bg-palette-blueslate/30 border border-palette-blueslate/40 text-palette-blush rounded-2xl transition"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -195,24 +190,24 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
 
       {/* Main Bar Chart Presentation */}
       <main className="w-full max-w-6xl mx-auto my-auto py-10">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-12 tracking-tight leading-tight">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-palette-blush mb-10 tracking-tight leading-tight text-balance">
           {data.question}
         </h1>
 
         <div className="space-y-4">
           {data.results.map((opt, idx) => {
-            const color = OPTION_COLORS[idx % OPTION_COLORS.length];
+            const color = PALETTE_OPTIONS[idx % PALETTE_OPTIONS.length];
             const percent = data.total_votes > 0 ? Math.round((opt.vote_count / data.total_votes) * 100) : 0;
             const isLeader = data.total_votes > 0 && opt.vote_count === maxVotes && opt.vote_count > 0;
 
             return (
               <div
                 key={opt.id}
-                className="relative overflow-hidden bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 sm:p-5 transition hover:border-slate-700/80 backdrop-blur-md"
+                className="relative overflow-hidden glass-panel border border-palette-blueslate/30 rounded-2xl p-4 sm:p-5 transition hover:border-palette-blueslate/60"
               >
                 {/* Background Progress Fill with CSS Transition */}
                 <div
-                  className={`absolute inset-y-0 left-0 ${color.fill} opacity-20 bar-transition`}
+                  className={`absolute inset-y-0 left-0 ${color.fill} opacity-25 bar-transition`}
                   style={{ width: `${percent}%` }}
                 />
 
@@ -221,21 +216,21 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
                     <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center border shrink-0 ${color.badge}`}>
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span className="text-lg sm:text-2xl font-bold text-white truncate">
+                    <span className="text-lg sm:text-2xl font-bold text-palette-blush truncate">
                       {opt.text}
                     </span>
                     {isLeader && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-[11px] font-bold tracking-wide">
-                        <CheckCircle className="w-3 h-3 text-amber-400" /> Leading
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-palette-grape/30 border border-palette-blush/30 text-palette-blush text-[11px] font-bold tracking-wide">
+                        <CheckCircle className="w-3 h-3 text-palette-blush" /> Leading
                       </span>
                     )}
                   </div>
 
                   <div className="flex items-baseline gap-4 shrink-0">
-                    <span className="text-xs sm:text-sm text-slate-400 font-semibold font-mono">
+                    <span className="text-xs sm:text-sm text-palette-slate font-semibold font-mono">
                       {opt.vote_count} {opt.vote_count === 1 ? 'vote' : 'votes'}
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black text-white font-mono w-16 text-right">
+                    <span className="text-2xl sm:text-3xl font-black text-palette-blush font-mono w-16 text-right">
                       {percent}%
                     </span>
                   </div>
@@ -247,24 +242,24 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
       </main>
 
       {/* Footer / Audience Instruction */}
-      <footer className="w-full max-w-6xl mx-auto border-t border-slate-900 pt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+      <footer className="w-full max-w-6xl mx-auto border-t border-palette-blueslate/30 pt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-palette-slate">
         <div className="flex items-center flex-wrap gap-2.5">
-          <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 font-bold rounded-lg uppercase tracking-wider text-[10px]">
+          <span className="px-2.5 py-1 bg-palette-grape/30 text-palette-blush font-bold rounded-lg uppercase tracking-wider text-[10px]">
             Join & Vote
           </span>
           <button
             type="button"
             onClick={copyVoterLink}
             title="Click to copy voting link"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 text-slate-200 px-3 py-1.5 rounded-xl font-mono text-xs transition group cursor-pointer shadow-sm active:scale-95"
+            className="flex items-center gap-2 bg-palette-charcoal/90 hover:bg-palette-charcoal border border-palette-blueslate/40 hover:border-palette-blush/50 text-palette-blush px-3 py-1.5 rounded-xl font-mono text-xs transition group cursor-pointer shadow-sm active:scale-95"
           >
-            <span className="text-indigo-400 select-all">{voterUrl}</span>
+            <span className="text-palette-blush select-all">{voterUrl}</span>
             {copied ? (
-              <span className="flex items-center gap-1 text-[11px] font-sans font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                <Check className="w-3 h-3 text-emerald-400" /> Copied!
+              <span className="flex items-center gap-1 text-[11px] font-sans font-bold text-palette-blush bg-palette-grape/40 px-2 py-0.5 rounded-md border border-palette-grape/50">
+                <Check className="w-3 h-3" /> Copied!
               </span>
             ) : (
-              <span className="flex items-center gap-1 text-[11px] font-sans text-slate-400 group-hover:text-indigo-300">
+              <span className="flex items-center gap-1 text-[11px] font-sans text-palette-slate group-hover:text-palette-blush">
                 <Copy className="w-3 h-3" /> Click to Copy
               </span>
             )}
@@ -274,15 +269,15 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
             <button
               type="button"
               onClick={() => setShowQr(!showQr)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-palette-blueslate/20 hover:bg-palette-blueslate/30 border border-palette-blueslate/40 text-palette-blush rounded-xl text-xs font-semibold transition"
             >
-              <QrCode className="w-3.5 h-3.5 text-indigo-400" />
+              <QrCode className="w-3.5 h-3.5 text-palette-blush" />
               {showQr ? 'Hide QR' : 'Show QR'}
             </button>
           )}
         </div>
 
-        <div className="text-slate-600 font-mono text-[11px]">
+        <div className="text-palette-slate font-mono text-[11px]">
           Live Interactive Polling
         </div>
       </footer>
@@ -291,27 +286,27 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
       {showQr && qrDataUrl && (
         <div 
           onClick={() => setShowQr(false)}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 bg-palette-charcoal/80 backdrop-blur-md z-50 flex items-center justify-center p-4 cursor-pointer"
         >
           <div 
             onClick={(e) => e.stopPropagation()} 
-            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center max-w-sm shadow-2xl animate-in fade-in zoom-in duration-150 cursor-default"
+            className="glass-panel border border-palette-blueslate/40 rounded-3xl p-6 sm:p-8 text-center max-w-sm shadow-2xl animate-in fade-in zoom-in duration-150 cursor-default bg-palette-charcoal"
           >
             <div className="flex justify-between items-center mb-4">
-              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Scan to Vote</span>
+              <span className="text-xs font-bold text-palette-blush uppercase tracking-wider">Scan to Vote</span>
               <button 
                 type="button" 
                 onClick={() => setShowQr(false)}
-                className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 bg-slate-800 rounded-lg"
+                className="text-palette-slate hover:text-palette-blush text-xs font-bold px-2.5 py-1 bg-palette-blueslate/20 rounded-lg transition"
               >
                 ✕ Close
               </button>
             </div>
-            <div className="p-4 bg-white rounded-2xl mx-auto inline-block shadow-inner mb-4">
+            <div className="p-4 bg-palette-blush rounded-2xl mx-auto inline-block shadow-inner mb-4">
               <img src={qrDataUrl} alt="Voting QR Code" className="w-48 h-48 sm:w-56 sm:h-56" />
             </div>
-            <p className="text-white text-sm font-bold">Point your phone camera to join</p>
-            <p className="text-slate-400 text-xs mt-1 font-mono break-all">{voterUrl}</p>
+            <p className="text-palette-blush text-sm font-bold">Point your phone camera to join</p>
+            <p className="text-palette-slate text-xs mt-1 font-mono break-all">{voterUrl}</p>
           </div>
         </div>
       )}
