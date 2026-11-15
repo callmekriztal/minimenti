@@ -6,7 +6,7 @@ import { CreatePresentation } from './components/CreatePresentation';
 import { PresentDeck } from './components/PresentDeck';
 import { VoteDeck } from './components/VoteDeck';
 import { PollRead, PresentationCreated } from './types';
-import { PlusCircle, Sparkles, Layers, Vote, ArrowRight } from 'lucide-react';
+import { PlusCircle, Layers, Vote, ArrowRight } from 'lucide-react';
 
 type AppView = 'create_deck' | 'create_single' | 'vote_deck' | 'present_deck' | 'vote_single' | 'present_single';
 
@@ -197,12 +197,11 @@ export const App: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between px-6 gap-2">
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>FastAPI + PostgreSQL + React + SSE Presentation Engine</span>
+          <div className="text-slate-400 font-medium">
+            Mini Mentimeter
           </div>
-          <div className="text-slate-600 font-mono">
-            Antigravity Educational Project
+          <div className="text-slate-600 font-mono text-[11px]">
+            © {new Date().getFullYear()} Mini Mentimeter
           </div>
         </div>
       </footer>

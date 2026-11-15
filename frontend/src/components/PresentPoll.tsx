@@ -283,7 +283,7 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
         </div>
 
         <div className="text-slate-600 font-mono text-[11px]">
-          Powered by FastAPI & PostgreSQL
+          Live Interactive Polling
         </div>
       </footer>
 
