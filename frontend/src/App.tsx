@@ -6,7 +6,7 @@ import { CreatePresentation } from './components/CreatePresentation';
 import { PresentDeck } from './components/PresentDeck';
 import { VoteDeck } from './components/VoteDeck';
 import { PollRead, PresentationCreated } from './types';
-import { PlusCircle, Layers, Vote, ArrowRight } from 'lucide-react';
+import { PlusCircle, Layers, Vote } from 'lucide-react';
 
 type AppView = 'create_deck' | 'create_single' | 'vote_deck' | 'present_deck' | 'vote_single' | 'present_single';
 
@@ -95,7 +95,6 @@ export const App: React.FC = () => {
     setView('vote_deck');
   };
 
-  // Full-bleed views for presentation screens
   if (view === 'present_deck' && presentationId) {
     return <PresentDeck presentationId={presentationId} adminKey={adminKey} />;
   }
@@ -105,76 +104,69 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
-      {/* Top Navigation */}
-      <header className="border-b border-slate-900 bg-slate-950/60 backdrop-blur-xl sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+    <div className="min-h-[100dvh] bg-palette-charcoal text-palette-blush flex flex-col justify-between selection:bg-palette-grape selection:text-palette-blush">
+      {/* Top Navbar */}
+      <header className="border-b border-palette-blueslate/30 bg-palette-charcoal/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-6 py-3.5">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={navigateToCreateDeck}
-            className="flex items-center gap-2.5 text-left group"
+            className="flex items-center gap-2.5 text-left group cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white font-black text-lg flex items-center justify-center shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition">
+            <div className="w-8 h-8 rounded-xl bg-palette-grape text-palette-blush font-black text-sm flex items-center justify-center shadow-md group-hover:scale-105 transition">
               M
             </div>
-            <div>
-              <span className="text-sm font-black text-white tracking-tight flex items-center gap-1.5">
-                Mini Mentimeter
-                <span className="px-1.5 py-0.2 text-[10px] bg-indigo-500/10 text-indigo-400 font-mono rounded border border-indigo-500/20">LIVE</span>
-              </span>
-              <span className="text-[11px] text-slate-500 block -mt-0.5">Interactive Multi-Question Presentations</span>
-            </div>
+            <span className="text-sm font-black text-palette-blush tracking-tight">
+              Mini Mentimeter
+            </span>
           </button>
 
-          {/* Quick Join By Code */}
-          <form onSubmit={handleJoinWithCode} className="hidden sm:flex items-center gap-1.5">
-            <div className="relative">
-              <input
-                type="text"
-                maxLength={6}
-                value={joinInput}
-                onChange={(e) => setJoinInput(e.target.value)}
-                placeholder="6-digit Room Code"
-                className="bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none w-36 font-mono text-center uppercase tracking-wider"
-              />
-            </div>
+          {/* Quick Join Code for Mobile & Desktop */}
+          <form onSubmit={handleJoinWithCode} className="flex items-center gap-1.5">
+            <input
+              type="text"
+              maxLength={6}
+              value={joinInput}
+              onChange={(e) => setJoinInput(e.target.value)}
+              placeholder="Code"
+              className="bg-palette-charcoal border border-palette-blueslate/40 focus:border-palette-blush rounded-xl px-2.5 py-1.5 text-xs text-palette-blush placeholder-palette-slate/50 focus:outline-none w-20 sm:w-28 font-mono text-center uppercase tracking-wider"
+            />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+              className="px-3 py-1.5 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush rounded-xl text-xs font-bold transition flex items-center gap-1"
             >
               Join
-              <ArrowRight className="w-3 h-3" />
             </button>
           </form>
 
-          {/* Mode Switcher */}
+          {/* New / Switch Mode */}
           <div className="flex items-center gap-2">
             {view === 'create_single' ? (
               <button
                 type="button"
                 onClick={navigateToCreateDeck}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+                className="px-3 py-1.5 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm"
               >
                 <Layers className="w-3.5 h-3.5" />
-                Multi-Question Deck
+                <span className="hidden sm:inline">Deck Mode</span>
               </button>
             ) : view === 'create_deck' ? (
               <button
                 type="button"
                 onClick={navigateToCreateSingle}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-palette-blueslate/20 hover:bg-palette-blueslate/40 border border-palette-blueslate/40 text-palette-slate hover:text-palette-blush text-xs font-bold rounded-xl transition flex items-center gap-1.5"
               >
                 <Vote className="w-3.5 h-3.5" />
-                Single Poll
+                <span className="hidden sm:inline">Single Poll</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={navigateToCreateDeck}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush text-xs font-bold rounded-xl transition flex items-center gap-1.5"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
-                New Presentation
+                <span className="hidden sm:inline">New Deck</span>
               </button>
             )}
           </div>
@@ -182,7 +174,7 @@ export const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
+      <main className="flex-1 flex items-center justify-center p-3 sm:p-8">
         {view === 'vote_deck' ? (
           <VoteDeck joinCode={joinCode || undefined} presentationId={presentationId || undefined} />
         ) : view === 'vote_single' && pollId ? (
@@ -194,14 +186,14 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between px-6 gap-2">
-          <div className="text-slate-400 font-medium">
+      {/* Minimal Footer */}
+      <footer className="border-t border-palette-blueslate/20 py-4 text-center text-xs text-palette-slate">
+        <div className="max-w-4xl mx-auto flex items-center justify-between px-6">
+          <div className="font-semibold text-palette-blush text-xs">
             Mini Mentimeter
           </div>
-          <div className="text-slate-600 font-mono text-[11px]">
-            © {new Date().getFullYear()} Mini Mentimeter
+          <div className="text-palette-slate/60 font-mono text-[11px]">
+            © {new Date().getFullYear()}
           </div>
         </div>
       </footer>

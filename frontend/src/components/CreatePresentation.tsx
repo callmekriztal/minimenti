@@ -68,15 +68,14 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      setError('Please provide a presentation title.');
+      setError('Please provide a title.');
       return;
     }
 
-    // Validate each question
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       if (!q.question.trim()) {
-        setError(`Question ${i + 1} has an empty question text.`);
+        setError(`Question ${i + 1} is empty.`);
         setCurrentSlideIndex(i);
         return;
       }
@@ -113,74 +112,74 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
       localStorage.setItem(`pres_admin_key_${created.id}`, created.admin_key);
       onPresentationCreated(created);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold rounded-full uppercase tracking-wider mb-3">
+    <div className="w-full max-w-xl mx-auto space-y-6">
+      {/* Title */}
+      <div className="text-center space-y-1">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-palette-grape/30 border border-palette-grape/40 text-palette-blush text-xs font-bold rounded-full uppercase tracking-wider mb-2">
           <Layers className="w-3.5 h-3.5" />
-          Interactive Presentation Deck
+          Interactive Deck
         </span>
-        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Create Multi-Question Presentation
+        <h1 className="text-3xl sm:text-4xl font-black text-palette-blush tracking-tight">
+          Create Presentation
         </h1>
-        <p className="text-slate-400 text-sm mt-1 max-w-xl mx-auto">
-          Prepare your questions ahead of time. Your audience joins once using a 6-digit code or QR code and answers questions live as you advance slides!
+        <p className="text-palette-slate text-xs sm:text-sm">
+          Prepare slides with multiple questions. Audience joins once.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <form onSubmit={handleSubmit} className="glass-panel rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
         {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-300 text-xs font-semibold">
+          <div className="p-3.5 bg-palette-grape/40 border border-palette-blush/30 rounded-2xl text-palette-blush text-xs font-semibold">
             {error}
           </div>
         )}
 
-        {/* Presentation Title */}
+        {/* Title Input */}
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-            Presentation Title
+          <label className="block text-xs font-bold text-palette-slate uppercase tracking-wider mb-1.5">
+            Title
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Product Demo Q&A, Team Trivia, Town Hall Polling"
-            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition shadow-inner font-medium"
+            placeholder="e.g. Sprint Review, Team Trivia"
+            className="w-full bg-palette-charcoal/90 border border-palette-blueslate/40 focus:border-palette-blush rounded-2xl px-4 py-3 text-sm text-palette-blush placeholder-palette-slate/50 focus:outline-none transition font-medium"
           />
         </div>
 
-        {/* Slide Tabs Navigation */}
+        {/* Slides Navigation */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-palette-slate uppercase tracking-wider">
               Slides ({questions.length})
             </span>
             <button
               type="button"
               onClick={handleAddQuestion}
-              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+              className="text-xs font-bold text-palette-blush hover:text-white flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" /> Add Slide
             </button>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
             {questions.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => setCurrentSlideIndex(idx)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shrink-0 border ${
+                className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shrink-0 border ${
                   currentSlideIndex === idx
-                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                    ? 'bg-palette-grape text-palette-blush border-palette-blush/40 shadow-sm'
+                    : 'bg-palette-charcoal text-palette-slate border-palette-blueslate/30 hover:border-palette-slate'
                 }`}
               >
                 <span>Slide {idx + 1}</span>
@@ -190,7 +189,7 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
                       e.stopPropagation();
                       handleRemoveQuestion(idx);
                     }}
-                    className="hover:text-rose-300 text-slate-500 p-0.5"
+                    className="hover:text-palette-blush text-palette-slate px-0.5"
                   >
                     ×
                   </span>
@@ -200,12 +199,12 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
           </div>
         </div>
 
-        {/* Active Slide Editor */}
-        <div className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+        {/* Slide Content Editor */}
+        <div className="bg-palette-charcoal/80 border border-palette-blueslate/30 rounded-2xl p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-              <HelpCircle className="w-3.5 h-3.5" />
-              Editing Question {currentSlideIndex + 1} of {questions.length}
+            <span className="text-xs font-bold text-palette-blush uppercase tracking-wider flex items-center gap-1.5">
+              <HelpCircle className="w-3.5 h-3.5 text-palette-slate" />
+              Question {currentSlideIndex + 1}
             </span>
           </div>
 
@@ -214,32 +213,32 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
               type="text"
               value={activeQuestion.question}
               onChange={(e) => handleUpdateQuestionText(e.target.value)}
-              placeholder="e.g. Which programming language do you prefer?"
-              className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition font-medium"
+              placeholder="Question text"
+              className="w-full bg-palette-charcoal border border-palette-blueslate/40 focus:border-palette-blush rounded-xl px-3.5 py-2.5 text-sm text-palette-blush placeholder-palette-slate/50 focus:outline-none transition font-medium"
             />
           </div>
 
-          <div className="space-y-2.5">
-            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Options (2 to 10)
+          <div className="space-y-2">
+            <label className="block text-[11px] font-bold text-palette-slate uppercase tracking-wider">
+              Options
             </label>
             {activeQuestion.options.map((opt, optIdx) => (
               <div key={optIdx} className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-slate-500 w-5 text-right">
-                  {optIdx + 1}.
+                <span className="text-xs font-mono font-bold text-palette-slate w-4 text-right">
+                  {optIdx + 1}
                 </span>
                 <input
                   type="text"
                   value={opt}
                   onChange={(e) => handleOptionChange(optIdx, e.target.value)}
                   placeholder={`Option ${optIdx + 1}`}
-                  className="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none transition"
+                  className="flex-1 bg-palette-charcoal border border-palette-blueslate/40 focus:border-palette-blush rounded-xl px-3.5 py-2 text-xs text-palette-blush placeholder-palette-slate/50 focus:outline-none transition"
                 />
                 {activeQuestion.options.length > 2 && (
                   <button
                     type="button"
                     onClick={() => handleRemoveOption(optIdx)}
-                    className="p-2 text-slate-500 hover:text-rose-400 transition"
+                    className="p-1.5 text-palette-slate hover:text-palette-blush transition"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -251,7 +250,7 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
               <button
                 type="button"
                 onClick={handleAddOption}
-                className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 mt-2 px-1"
+                className="text-xs font-bold text-palette-slate hover:text-palette-blush flex items-center gap-1 mt-1 pt-1"
               >
                 <Plus className="w-3 h-3" /> Add Option
               </button>
@@ -263,14 +262,14 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-sm rounded-2xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
+          className="w-full min-h-[50px] px-6 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush font-bold text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
         >
           {loading ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-palette-blush/30 border-t-palette-blush rounded-full animate-spin" />
           ) : (
             <>
-              Launch Live Presentation Deck
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+              Launch Presentation
+              <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>

@@ -8,15 +8,13 @@ interface PresentDeckProps {
   adminKey?: string | null;
 }
 
-const OPTION_COLORS = [
-  { fill: 'bg-indigo-600', text: 'text-indigo-400', badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
-  { fill: 'bg-cyan-600', text: 'text-cyan-400', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' },
-  { fill: 'bg-emerald-600', text: 'text-emerald-400', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-  { fill: 'bg-amber-600', text: 'text-amber-400', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  { fill: 'bg-rose-600', text: 'text-rose-400', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
-  { fill: 'bg-purple-600', text: 'text-purple-400', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-  { fill: 'bg-teal-600', text: 'text-teal-400', badge: 'bg-teal-500/20 text-teal-300 border-teal-500/30' },
-  { fill: 'bg-orange-600', text: 'text-orange-400', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/30' },
+// Custom 5-color palette mapping for options
+const PALETTE_OPTIONS = [
+  { fill: 'bg-palette-grape', border: 'border-palette-grape', text: 'text-palette-blush', badge: 'bg-palette-grape/30 border-palette-grape/50 text-palette-blush' },
+  { fill: 'bg-palette-blueslate', border: 'border-palette-blueslate', text: 'text-palette-blush', badge: 'bg-palette-blueslate/30 border-palette-blueslate/50 text-palette-blush' },
+  { fill: 'bg-[#7a5882]', border: 'border-[#7a5882]', text: 'text-palette-blush', badge: 'bg-[#7a5882]/30 border-[#7a5882]/50 text-palette-blush' },
+  { fill: 'bg-[#475b70]', border: 'border-[#475b70]', text: 'text-palette-blush', badge: 'bg-[#475b70]/30 border-[#475b70]/50 text-palette-blush' },
+  { fill: 'bg-palette-charcoal', border: 'border-palette-slate', text: 'text-palette-blush', badge: 'bg-palette-charcoal border-palette-slate/40 text-palette-slate' },
 ];
 
 export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminKey: propAdminKey }) => {
@@ -33,13 +31,12 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
 
   useEffect(() => {
     if (!voterUrl) return;
-    QRCode.toDataURL(voterUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } })
+    QRCode.toDataURL(voterUrl, { width: 320, margin: 2, color: { dark: '#3a4454', light: '#f5dddd' } })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
   }, [voterUrl]);
 
   useEffect(() => {
-    // Connect to presentation live stream
     const eventSource = new EventSource(`/presentations/${presentationId}/stream`);
 
     eventSource.onopen = () => setConnected(true);
@@ -110,32 +107,31 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
 
   if (!state) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center justify-center p-6 bg-slate-950 text-white">
-        <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4" />
-        <h2 className="text-xl font-bold tracking-tight">Connecting to Presentation...</h2>
-        <p className="text-slate-400 text-xs mt-1 font-mono">Syncing slides on /presentations/{presentationId}/stream</p>
+      <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-palette-charcoal text-palette-blush">
+        <div className="w-12 h-12 border-3 border-palette-grape border-t-palette-blush rounded-full animate-spin mb-4" />
+        <h2 className="text-xl font-bold tracking-tight">Syncing presentation...</h2>
       </div>
     );
   }
 
   if (state.is_finished) {
     return (
-      <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-white p-8 sm:p-16 text-center select-none">
-        <div className="max-w-xl mx-auto my-auto space-y-6">
-          <div className="w-20 h-20 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/20">
-            <Award className="w-10 h-10 text-white" />
+      <div className="min-h-[100dvh] flex flex-col justify-between bg-palette-charcoal text-palette-blush p-8 sm:p-16 text-center select-none">
+        <div className="max-w-md mx-auto my-auto space-y-6">
+          <div className="w-20 h-20 bg-palette-grape rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-palette-charcoal/50">
+            <Award className="w-10 h-10 text-palette-blush" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Presentation Finished!</h1>
-          <p className="text-slate-400 text-sm sm:text-base">
-            Thank you for participating in <strong>{state.title}</strong>. All {state.total_polls} questions have concluded.
+          <h1 className="text-3xl sm:text-4xl font-black text-palette-blush tracking-tight">All Questions Complete!</h1>
+          <p className="text-palette-slate text-sm leading-relaxed">
+            Thank you for participating in <strong>{state.title}</strong>.
           </p>
           {effectiveAdminKey && (
             <button
               type="button"
               onClick={handlePrev}
-              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-2xl transition"
+              className="px-6 py-3 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush text-xs font-bold rounded-2xl transition shadow-lg"
             >
-              ← Reopen Last Question
+              ← Back to Last Slide
             </button>
           )}
         </div>
@@ -148,64 +144,60 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
   const maxVotes = results ? Math.max(...results.results.map((r) => r.vote_count), 1) : 1;
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-white p-6 sm:p-12 select-none">
-      {/* Top Bar with Join Code & Slide Navigation */}
-      <header className="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 border-b border-slate-900 pb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
+    <div className="min-h-[100dvh] flex flex-col justify-between bg-palette-charcoal text-palette-blush p-5 sm:p-10 select-none">
+      {/* Top Header */}
+      <header className="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 border-b border-palette-blueslate/30 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-palette-grape text-palette-blush font-black text-lg flex items-center justify-center shadow-lg">
             M
           </div>
           <div>
-            <div className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-              <span>{state.title}</span>
-              <span className="w-1 h-1 rounded-full bg-slate-700" />
-              <span className="text-slate-400 font-mono text-[11px]">Slide {state.active_poll_index + 1} of {state.total_polls}</span>
+            <div className="text-xs font-bold text-palette-slate uppercase tracking-wider flex items-center gap-2">
+              <span className="text-palette-blush truncate max-w-[200px]">{state.title}</span>
+              <span className="w-1 h-1 rounded-full bg-palette-blueslate" />
+              <span>Slide {state.active_poll_index + 1}/{state.total_polls}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-              <span className="font-medium">{connected ? 'Live Sync Active' : 'Reconnecting...'}</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-palette-slate">
+              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-palette-blush animate-pulse' : 'bg-palette-slate'}`} />
+              <span>{connected ? 'Live Sync' : 'Reconnecting...'}</span>
             </div>
           </div>
         </div>
 
-        {/* Join Code Callout & Controls */}
-        <div className="flex items-center gap-3">
-          {/* Prominent 6-digit Join Code */}
-          <div className="px-4 py-2 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl flex items-center gap-2 shadow-lg">
-            <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider">Join Code:</span>
-            <span className="text-lg font-black font-mono text-white tracking-widest">{state.join_code}</span>
+        {/* Controls */}
+        <div className="flex items-center gap-2.5">
+          {/* Join Code Display */}
+          <div className="px-3.5 py-1.5 bg-palette-blueslate/30 border border-palette-blueslate/40 rounded-xl flex items-center gap-1.5 shadow-sm">
+            <span className="text-[10px] font-bold text-palette-slate uppercase">Code:</span>
+            <span className="text-base font-black font-mono text-palette-blush tracking-wider">{state.join_code}</span>
           </div>
 
-          {/* Votes Count */}
+          {/* Vote count */}
           {results && (
-            <div className="px-4 py-2 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center gap-2 shadow-lg">
-              <Users className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-semibold text-slate-300">
-                <strong className="text-white text-base font-black mr-1">{results.total_votes}</strong>
-                {results.total_votes === 1 ? 'vote' : 'votes'}
-              </span>
+            <div className="px-3.5 py-1.5 bg-palette-blueslate/20 border border-palette-blueslate/30 rounded-xl flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-palette-slate" />
+              <span className="text-xs font-bold text-palette-blush">{results.total_votes}</span>
             </div>
           )}
 
-          {/* Slide Navigation Buttons (for Admin) */}
+          {/* Slide Navigation for Admin */}
           {effectiveAdminKey && (
-            <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-2xl">
+            <div className="flex items-center gap-1 bg-palette-blueslate/20 border border-palette-blueslate/30 p-1 rounded-xl">
               <button
                 type="button"
                 disabled={state.active_poll_index === 0 || stepping}
                 onClick={handlePrev}
-                className="px-3 py-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition disabled:opacity-30 flex items-center gap-1"
-                title="Previous Slide"
+                className="px-2.5 py-1 hover:bg-palette-grape/40 text-palette-slate hover:text-palette-blush rounded-lg text-xs font-bold transition disabled:opacity-30"
+                title="Previous"
               >
                 <ChevronLeft className="w-4 h-4" />
-                Prev
               </button>
               <button
                 type="button"
                 disabled={stepping}
                 onClick={handleNext}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-md shadow-indigo-600/30"
-                title="Next Slide"
+                className="px-3 py-1 bg-palette-grape hover:bg-palette-grape/80 text-palette-blush rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                title="Next"
               >
                 {state.active_poll_index < state.total_polls - 1 ? (
                   <>
@@ -214,8 +206,8 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
                   </>
                 ) : (
                   <>
-                    Finish
-                    <CheckCircle className="w-3.5 h-3.5" />
+                    End
+                    <CheckCircle className="w-3 h-3" />
                   </>
                 )}
               </button>
@@ -225,40 +217,40 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-2xl transition"
-            title="Toggle Fullscreen"
+            className="p-2 bg-palette-blueslate/20 hover:bg-palette-blueslate/40 border border-palette-blueslate/30 text-palette-slate hover:text-palette-blush rounded-xl transition"
+            title="Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </header>
 
-      {/* Main Question Display & Animated Bar Chart */}
-      <main className="w-full max-w-5xl mx-auto my-auto py-8">
+      {/* Question & Results */}
+      <main className="w-full max-w-4xl mx-auto my-auto py-8">
         <div className="mb-10 text-center">
-          <span className="inline-block px-3 py-1 bg-slate-800/80 border border-slate-700/50 text-slate-400 font-mono text-xs rounded-full uppercase tracking-wider mb-3">
-            Question {state.active_poll_index + 1} of {state.total_polls}
+          <span className="inline-block px-3 py-1 bg-palette-blueslate/30 border border-palette-blueslate/40 text-palette-slate text-xs font-bold rounded-full uppercase tracking-wider mb-3">
+            Question {state.active_poll_index + 1}
           </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto">
+          <h2 className="text-3xl sm:text-5xl font-black text-palette-blush tracking-tight leading-tight">
             {activePoll?.question || 'Waiting for question...'}
           </h2>
         </div>
 
-        {/* Real-Time Animated Results Bars */}
-        <div className="space-y-4 max-w-4xl mx-auto">
+        {/* Results Bar Chart */}
+        <div className="space-y-3.5 max-w-3xl mx-auto">
           {results?.results.map((opt, idx) => {
-            const color = OPTION_COLORS[idx % OPTION_COLORS.length];
+            const color = PALETTE_OPTIONS[idx % PALETTE_OPTIONS.length];
             const percent = results.total_votes > 0 ? Math.round((opt.vote_count / results.total_votes) * 100) : 0;
             const barWidth = `${Math.round((opt.vote_count / maxVotes) * 100)}%`;
 
             return (
               <div
                 key={opt.id}
-                className="relative bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden p-4 sm:p-5 transition hover:border-slate-700"
+                className="relative bg-palette-charcoal/90 border border-palette-blueslate/30 rounded-2xl overflow-hidden p-4 sm:p-5 shadow-sm transition hover:border-palette-grape"
               >
-                {/* Background animated progress bar */}
+                {/* Colored fill bar */}
                 <div
-                  className={`absolute top-0 bottom-0 left-0 ${color.fill} opacity-20 transition-all duration-700 ease-out`}
+                  className={`absolute top-0 bottom-0 left-0 ${color.fill} opacity-35 bar-transition`}
                   style={{ width: barWidth }}
                 />
 
@@ -267,16 +259,16 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
                     <span className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-xs ${color.badge}`}>
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span className="text-lg sm:text-xl font-bold text-slate-100">
+                    <span className="text-base sm:text-lg font-bold text-palette-blush">
                       {opt.text}
                     </span>
                   </div>
 
-                  <div className="flex items-baseline gap-4 shrink-0">
-                    <span className="text-xs sm:text-sm text-slate-400 font-semibold font-mono">
+                  <div className="flex items-baseline gap-3 shrink-0">
+                    <span className="text-xs font-mono font-medium text-palette-slate">
                       {opt.vote_count} {opt.vote_count === 1 ? 'vote' : 'votes'}
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black text-white font-mono w-16 text-right">
+                    <span className="text-xl sm:text-2xl font-black text-palette-blush font-mono w-14 text-right">
                       {percent}%
                     </span>
                   </div>
@@ -287,26 +279,23 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
         </div>
       </main>
 
-      {/* Footer / Instructions */}
-      <footer className="w-full max-w-6xl mx-auto border-t border-slate-900 pt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
-        <div className="flex items-center flex-wrap gap-2.5">
-          <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 font-bold rounded-lg uppercase tracking-wider text-[10px]">
-            Join on any device
-          </span>
+      {/* Footer / Join URL & QR code */}
+      <footer className="w-full max-w-5xl mx-auto border-t border-palette-blueslate/30 pt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-palette-slate">
+        <div className="flex items-center flex-wrap gap-2">
           <button
             type="button"
             onClick={copyVoterLink}
             title="Click to copy voting link"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 text-slate-200 px-3 py-1.5 rounded-xl font-mono text-xs transition group cursor-pointer shadow-sm active:scale-95"
+            className="flex items-center gap-2 bg-palette-blueslate/20 hover:bg-palette-blueslate/30 border border-palette-blueslate/40 text-palette-blush px-3 py-1.5 rounded-xl font-mono text-xs transition cursor-pointer shadow-sm active:scale-95"
           >
-            <span className="text-indigo-400 select-all">{voterUrl}</span>
+            <span className="select-all truncate max-w-[260px] sm:max-w-none">{voterUrl}</span>
             {copied ? (
-              <span className="flex items-center gap-1 text-[11px] font-sans font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                <Check className="w-3 h-3 text-emerald-400" /> Copied!
+              <span className="flex items-center gap-1 text-[11px] font-sans font-bold text-palette-blush bg-palette-grape px-2 py-0.5 rounded-md">
+                <Check className="w-3 h-3" /> Copied
               </span>
             ) : (
-              <span className="flex items-center gap-1 text-[11px] font-sans text-slate-400 group-hover:text-indigo-300">
-                <Copy className="w-3 h-3" /> Click to Copy
+              <span className="flex items-center gap-1 text-[11px] font-sans text-palette-slate">
+                <Copy className="w-3 h-3" /> Copy
               </span>
             )}
           </button>
@@ -315,44 +304,43 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
             <button
               type="button"
               onClick={() => setShowQr(!showQr)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-palette-blueslate/20 hover:bg-palette-blueslate/30 border border-palette-blueslate/40 text-palette-blush rounded-xl text-xs font-semibold transition"
             >
-              <QrCode className="w-3.5 h-3.5 text-indigo-400" />
+              <QrCode className="w-3.5 h-3.5 text-palette-slate" />
               {showQr ? 'Hide QR' : 'Show QR'}
             </button>
           )}
         </div>
 
-        <div className="text-slate-600 font-mono text-[11px]">
-          Room Code: <strong className="text-white">{state.join_code}</strong>
+        <div className="text-palette-slate/80 font-mono text-[11px]">
+          Room Code: <strong className="text-palette-blush">{state.join_code}</strong>
         </div>
       </footer>
 
-      {/* QR Code Modal */}
+      {/* QR Modal */}
       {showQr && qrDataUrl && (
         <div
           onClick={() => setShowQr(false)}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 bg-palette-charcoal/85 backdrop-blur-md z-50 flex items-center justify-center p-4 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center max-w-sm shadow-2xl animate-in fade-in zoom-in duration-150 cursor-default"
+            className="bg-palette-charcoal border border-palette-slate/40 rounded-3xl p-6 sm:p-8 text-center max-w-xs shadow-2xl animate-in fade-in zoom-in duration-150 cursor-default"
           >
             <div className="flex justify-between items-center mb-4">
-              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Scan to Join Deck</span>
+              <span className="text-xs font-bold text-palette-blush uppercase tracking-wider">Scan to Vote</span>
               <button
                 type="button"
                 onClick={() => setShowQr(false)}
-                className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 bg-slate-800 rounded-lg"
+                className="text-palette-slate hover:text-palette-blush text-xs font-bold px-2 py-1 bg-palette-blueslate/30 rounded-lg"
               >
-                ✕ Close
+                ✕
               </button>
             </div>
-            <div className="p-4 bg-white rounded-2xl mx-auto inline-block shadow-inner mb-4">
-              <img src={qrDataUrl} alt="Presentation QR Code" className="w-48 h-48 sm:w-56 sm:h-56" />
+            <div className="p-3 bg-palette-blush rounded-2xl mx-auto inline-block shadow-inner mb-4">
+              <img src={qrDataUrl} alt="Presentation QR Code" className="w-48 h-48" />
             </div>
-            <p className="text-white text-sm font-bold">Join Code: {state.join_code}</p>
-            <p className="text-slate-400 text-xs mt-1 font-mono break-all">{voterUrl}</p>
+            <p className="text-palette-blush text-sm font-bold tracking-wide">Code: {state.join_code}</p>
           </div>
         </div>
       )}
