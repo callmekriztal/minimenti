@@ -9,6 +9,7 @@ interface CreatePollProps {
 export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState<string[]>(['', '']);
+  const [correctOptionIndex, setCorrectOptionIndex] = useState<number | null>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdPoll, setCreatedPoll] = useState<PollRead | null>(null);
@@ -23,6 +24,11 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
   const handleRemoveOption = (index: number) => {
     if (options.length > 2) {
       setOptions(options.filter((_, i) => i !== index));
+      if (correctOptionIndex === index) {
+        setCorrectOptionIndex(0);
+      } else if (correctOptionIndex !== null && correctOptionIndex > index) {
+        setCorrectOptionIndex(correctOptionIndex - 1);
+      }
     }
   };
 
@@ -53,8 +59,13 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
       const res = await fetch('/polls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: trimmedQuestion, options: cleanOptions }),
+        body: JSON.stringify({
+          question: trimmedQuestion,
+          options: cleanOptions,
+          correct_option_index: correctOptionIndex,
+        }),
       });
+
 
       if (!res.ok) {
         const data = await res.json();
@@ -200,29 +211,50 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ onPollCreated }) => {
           </div>
 
           <div className="space-y-2">
-            {options.map((opt, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-xl bg-palette-blueslate/20 border border-palette-blueslate/30 flex items-center justify-center text-xs font-bold text-palette-slate">
-                  {String.fromCharCode(65 + index)}
-                </div>
-                <input
-                  type="text"
-                  value={opt}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="flex-1 bg-palette-charcoal/90 border border-palette-blueslate/40 focus:border-palette-blush text-palette-blush placeholder-palette-slate/50 px-3.5 py-2 rounded-xl text-xs transition outline-none"
-                />
-                {options.length > 2 && (
+            {options.map((opt, index) => {
+              const isCorrect = correctOptionIndex === index;
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-palette-blueslate/20 border border-palette-blueslate/30 flex items-center justify-center text-xs font-bold text-palette-slate">
+                    {String.fromCharCode(65 + index)}
+                  </div>
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    placeholder={`Option ${index + 1}`}
+                    className={`flex-1 bg-palette-charcoal/90 border rounded-xl px-3.5 py-2 text-xs text-palette-blush placeholder-palette-slate/50 outline-none transition ${
+                      isCorrect ? 'border-palette-grape ring-1 ring-palette-grape/50' : 'border-palette-blueslate/40 focus:border-palette-blush'
+                    }`}
+                  />
                   <button
                     type="button"
-                    onClick={() => handleRemoveOption(index)}
-                    className="p-1.5 text-palette-slate hover:text-palette-blush transition"
+                    onClick={() => setCorrectOptionIndex(correctOptionIndex === index ? null : index)}
+                    title={isCorrect ? "Correct Answer (Click to unmark)" : "Click to mark as correct answer"}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+                      isCorrect
+                        ? 'bg-palette-grape text-palette-blush border border-palette-blush shadow-md'
+                        : 'bg-palette-blueslate/20 hover:bg-palette-blueslate/30 text-palette-slate border border-palette-blueslate/40'
+                    }`}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Check className={`w-3.5 h-3.5 ${isCorrect ? 'text-palette-blush' : 'text-palette-slate'}`} />
+                    <span className="text-[11px] hidden sm:inline">
+                      {isCorrect ? 'Correct' : 'Mark Correct'}
+                    </span>
                   </button>
-                )}
-              </div>
-            ))}
+                  {options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOption(index)}
+                      className="p-1.5 text-palette-slate hover:text-palette-blush transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
 
             {options.length < 10 && (
               <button

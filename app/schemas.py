@@ -7,6 +7,7 @@ class OptionRead(BaseModel):
     id: int
     text: str
     position: int
+    is_correct: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -18,6 +19,10 @@ class PollCreate(BaseModel):
         min_length=2,
         max_length=10,
         description="List of 2 to 10 option texts",
+    )
+    correct_option_index: int | None = Field(
+        default=None,
+        description="Optional 0-based index of the correct option in options list",
     )
     closes_at: datetime | None = Field(
         default=None,
@@ -73,6 +78,11 @@ class VoteCreate(BaseModel):
         max_length=64,
         description="Client-generated unique token identifying this browser/device",
     )
+    nickname: str | None = Field(
+        default=None,
+        max_length=50,
+        description="Optional nickname of the voter",
+    )
 
     @field_validator("voter_token")
     @classmethod
@@ -81,6 +91,28 @@ class VoteCreate(BaseModel):
         if not trimmed:
             raise ValueError("voter_token cannot be empty")
         return trimmed
+
+
+class ParticipantJoin(BaseModel):
+    voter_token: str = Field(..., min_length=1, max_length=64)
+    nickname: str = Field(..., min_length=1, max_length=50)
+
+    @field_validator("nickname")
+    @classmethod
+    def validate_nickname(cls, value: str) -> str:
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("Nickname cannot be empty")
+        return trimmed
+
+
+class LeaderboardEntryRead(BaseModel):
+    rank: int
+    nickname: str
+    score: int
+    correct_count: int
+    total_questions: int
+    voter_token: str | None = None
 
 
 class VoteRead(BaseModel):
@@ -97,6 +129,7 @@ class OptionResultRead(BaseModel):
     text: str
     position: int
     vote_count: int
+    is_correct: bool | None = None
 
 
 class PollResultsRead(BaseModel):
@@ -148,6 +181,9 @@ class PresentationStateRead(BaseModel):
     active_poll_index: int
     total_polls: int
     is_finished: bool
+    participants_count: int = 0
     active_poll: PollRead | None
     results: PollResultsRead | None
+    leaderboard: list[LeaderboardEntryRead] = []
+
 

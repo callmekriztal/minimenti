@@ -2,6 +2,7 @@ export interface OptionRead {
   id: number;
   text: string;
   position: number;
+  is_correct?: boolean | null;
 }
 
 export interface PollRead {
@@ -19,6 +20,7 @@ export interface OptionResult {
   text: string;
   position: number;
   vote_count: number;
+  is_correct?: boolean | null;
 }
 
 export interface PollResults {
@@ -29,6 +31,15 @@ export interface PollResults {
   results: OptionResult[];
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  nickname: string;
+  score: number;
+  correct_count: number;
+  total_questions: number;
+  voter_token?: string;
+}
+
 export interface PresentationState {
   presentation_id: string;
   title: string;
@@ -36,8 +47,10 @@ export interface PresentationState {
   active_poll_index: number;
   total_polls: number;
   is_finished: boolean;
+  participants_count?: number;
   active_poll: PollRead | null;
   results: PollResults | null;
+  leaderboard?: LeaderboardEntry[];
 }
 
 export interface PresentationCreated {
@@ -50,3 +63,4 @@ export interface PresentationCreated {
   polls: PollRead[];
   admin_key: string;
 }
+

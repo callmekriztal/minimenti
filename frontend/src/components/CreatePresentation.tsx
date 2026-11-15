@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, ArrowRight, Layers, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Layers, HelpCircle, Check } from 'lucide-react';
 import { PresentationCreated } from '../types';
 
 interface QuestionDraft {
   question: string;
   options: string[];
+  correctOptionIndex: number | null;
 }
 
 interface CreatePresentationProps {
@@ -14,7 +15,7 @@ interface CreatePresentationProps {
 export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresentationCreated }) => {
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState<QuestionDraft[]>([
-    { question: '', options: ['', ''] },
+    { question: '', options: ['', ''], correctOptionIndex: 0 },
   ]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
 
   const handleAddQuestion = () => {
     if (questions.length >= 20) return;
-    const updated = [...questions, { question: '', options: ['', ''] }];
+    const updated = [...questions, { question: '', options: ['', ''], correctOptionIndex: 0 }];
     setQuestions(updated);
     setCurrentSlideIndex(updated.length - 1);
   };
@@ -53,12 +54,27 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
     if (activeQuestion.options.length <= 2) return;
     const updated = [...questions];
     updated[currentSlideIndex].options = updated[currentSlideIndex].options.filter((_, i) => i !== optIdx);
+    if (updated[currentSlideIndex].correctOptionIndex === optIdx) {
+      updated[currentSlideIndex].correctOptionIndex = 0;
+    } else if (
+      updated[currentSlideIndex].correctOptionIndex !== null &&
+      updated[currentSlideIndex].correctOptionIndex! > optIdx
+    ) {
+      updated[currentSlideIndex].correctOptionIndex = updated[currentSlideIndex].correctOptionIndex! - 1;
+    }
     setQuestions(updated);
   };
 
   const handleOptionChange = (optIdx: number, val: string) => {
     const updated = [...questions];
     updated[currentSlideIndex].options[optIdx] = val;
+    setQuestions(updated);
+  };
+
+  const handleToggleCorrectOption = (optIdx: number) => {
+    const updated = [...questions];
+    updated[currentSlideIndex].correctOptionIndex =
+      updated[currentSlideIndex].correctOptionIndex === optIdx ? null : optIdx;
     setQuestions(updated);
   };
 
@@ -94,6 +110,7 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
         polls: questions.map((q) => ({
           question: q.question.trim(),
           options: q.options.map((o) => o.trim()).filter((o) => o.length > 0),
+          correct_option_index: q.correctOptionIndex,
         })),
       };
 
@@ -102,6 +119,7 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
 
       if (!res.ok) {
         const errData = await res.json();
@@ -222,29 +240,50 @@ export const CreatePresentation: React.FC<CreatePresentationProps> = ({ onPresen
             <label className="block text-[11px] font-bold text-palette-slate uppercase tracking-wider">
               Options
             </label>
-            {activeQuestion.options.map((opt, optIdx) => (
-              <div key={optIdx} className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-palette-slate w-4 text-right">
-                  {optIdx + 1}
-                </span>
-                <input
-                  type="text"
-                  value={opt}
-                  onChange={(e) => handleOptionChange(optIdx, e.target.value)}
-                  placeholder={`Option ${optIdx + 1}`}
-                  className="flex-1 bg-palette-charcoal border border-palette-blueslate/40 focus:border-palette-blush rounded-xl px-3.5 py-2 text-xs text-palette-blush placeholder-palette-slate/50 focus:outline-none transition"
-                />
-                {activeQuestion.options.length > 2 && (
+            {activeQuestion.options.map((opt, optIdx) => {
+              const isCorrect = activeQuestion.correctOptionIndex === optIdx;
+              return (
+                <div key={optIdx} className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-palette-slate w-4 text-right">
+                    {optIdx + 1}
+                  </span>
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => handleOptionChange(optIdx, e.target.value)}
+                    placeholder={`Option ${optIdx + 1}`}
+                    className={`flex-1 bg-palette-charcoal border rounded-xl px-3.5 py-2 text-xs text-palette-blush placeholder-palette-slate/50 focus:outline-none transition ${
+                      isCorrect ? 'border-palette-grape ring-1 ring-palette-grape/50' : 'border-palette-blueslate/40 focus:border-palette-blush'
+                    }`}
+                  />
                   <button
                     type="button"
-                    onClick={() => handleRemoveOption(optIdx)}
-                    className="p-1.5 text-palette-slate hover:text-palette-blush transition"
+                    onClick={() => handleToggleCorrectOption(optIdx)}
+                    title={isCorrect ? "Correct Answer (Click to unmark)" : "Click to set as Correct Answer"}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+                      isCorrect
+                        ? 'bg-palette-grape text-palette-blush border border-palette-blush shadow-md'
+                        : 'bg-palette-blueslate/20 hover:bg-palette-blueslate/30 text-palette-slate border border-palette-blueslate/40'
+                    }`}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Check className={`w-3.5 h-3.5 ${isCorrect ? 'text-palette-blush' : 'text-palette-slate'}`} />
+                    <span className="text-[11px] hidden sm:inline">
+                      {isCorrect ? 'Correct' : 'Mark Correct'}
+                    </span>
                   </button>
-                )}
-              </div>
-            ))}
+                  {activeQuestion.options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOption(optIdx)}
+                      className="p-1.5 text-palette-slate hover:text-palette-blush transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
 
             {activeQuestion.options.length < 10 && (
               <button

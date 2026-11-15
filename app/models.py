@@ -42,6 +42,10 @@ class Presentation(Base):
         cascade="all, delete-orphan",
         order_by="Poll.position",
     )
+    participants: Mapped[list["PresentationParticipant"]] = relationship(
+        back_populates="presentation",
+        cascade="all, delete-orphan",
+    )
 
 
 class Poll(Base):
@@ -84,6 +88,7 @@ class Option(Base):
     )
     text: Mapped[str] = mapped_column(String(255), nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     poll: Mapped["Poll"] = relationship(back_populates="options")
     votes: Mapped[list["Vote"]] = relationship(
@@ -103,6 +108,7 @@ class Vote(Base):
         Integer, ForeignKey("options.id", ondelete="CASCADE"), nullable=False, index=True
     )
     voter_token: Mapped[str] = mapped_column(String(64), nullable=False)
+    nickname: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -114,4 +120,25 @@ class Vote(Base):
         # Decision 1 & 2: Prevent a participant from voting more than once in the same poll
         UniqueConstraint("poll_id", "voter_token", name="uq_poll_voter"),
     )
+
+
+class PresentationParticipant(Base):
+    __tablename__ = "presentation_participants"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    presentation_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("presentations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    voter_token: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    nickname: Mapped[str] = mapped_column(String(50), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    presentation: Mapped["Presentation"] = relationship(back_populates="participants")
+
+    __table_args__ = (
+        UniqueConstraint("presentation_id", "voter_token", name="uq_pres_participant"),
+    )
+
 

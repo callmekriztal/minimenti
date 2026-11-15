@@ -24,32 +24,6 @@ router = APIRouter(prefix="/polls", tags=["polls"])
 
 
 def _compute_poll_results(poll: Poll, db: Session) -> PollResultsRead:
-    # Decision 3: On-the-fly SQL aggregation using outerjoin to include 0-vote options
-    stmt = (
-        select(
-            Option.id,
-            Option.text,
-            Option.position,
-            func.count(Vote.id).label("vote_count"),
-        )
-        .outerjoin(Vote, Option.id == Vote.option_id)
-        .where(Option.poll_id == poll.id)
-        .group_by(Option.id, Option.text, Option.position)
-        .order_by(Option.position)
-    )
-    rows = db.execute(stmt).all()
-
-    option_results = [
-        OptionResultRead(
-            id=row.id,
-            text=row.text,
-            position=row.position,
-            vote_count=row.vote_count,
-        )
-        for row in rows
-    ]
-    total_votes = sum(item.vote_count for item in option_results)
-
     now = datetime.now(timezone.utc)
     is_expired = False
     if poll.closes_at is not None:
@@ -60,10 +34,40 @@ def _compute_poll_results(poll: Poll, db: Session) -> PollResultsRead:
         )
         is_expired = closing_time <= now
 
+    is_closed_val = poll.is_closed or is_expired
+
+    # Decision 3: On-the-fly SQL aggregation using outerjoin to include 0-vote options
+    stmt = (
+        select(
+            Option.id,
+            Option.text,
+            Option.position,
+            Option.is_correct,
+            func.count(Vote.id).label("vote_count"),
+        )
+        .outerjoin(Vote, Option.id == Vote.option_id)
+        .where(Option.poll_id == poll.id)
+        .group_by(Option.id, Option.text, Option.position, Option.is_correct)
+        .order_by(Option.position)
+    )
+    rows = db.execute(stmt).all()
+
+    option_results = [
+        OptionResultRead(
+            id=row.id,
+            text=row.text,
+            position=row.position,
+            vote_count=row.vote_count,
+            is_correct=row.is_correct if is_closed_val else None,
+        )
+        for row in rows
+    ]
+    total_votes = sum(item.vote_count for item in option_results)
+
     return PollResultsRead(
         poll_id=poll.id,
         question=poll.question,
-        is_closed=poll.is_closed or is_expired,
+        is_closed=is_closed_val,
         total_votes=total_votes,
         results=option_results,
     )
@@ -78,9 +82,11 @@ def create_poll(payload: PollCreate, db: Session = Depends(get_db)):
 
     # Position is 0-indexed to preserve order of submitted options
     for index, option_text in enumerate(payload.options):
+        is_corr = payload.correct_option_index is not None and index == payload.correct_option_index
         option = Option(
             text=option_text,
             position=index,
+            is_correct=is_corr,
         )
         poll.options.append(option)
 
@@ -88,6 +94,7 @@ def create_poll(payload: PollCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(poll)
     return poll
+
 
 
 @router.get("/{poll_id}", response_model=PollRead)
@@ -191,8 +198,27 @@ def cast_vote(
         poll_id=poll_id,
         option_id=payload.option_id,
         voter_token=payload.voter_token,
+        nickname=payload.nickname,
     )
     db.add(vote)
+
+    if poll.presentation_id and payload.nickname:
+        from app.models import PresentationParticipant
+        part_stmt = select(PresentationParticipant).where(
+            PresentationParticipant.presentation_id == poll.presentation_id,
+            PresentationParticipant.voter_token == payload.voter_token,
+        )
+        participant = db.scalar(part_stmt)
+        if not participant:
+            participant = PresentationParticipant(
+                presentation_id=poll.presentation_id,
+                voter_token=payload.voter_token,
+                nickname=payload.nickname,
+            )
+            db.add(participant)
+        else:
+            participant.nickname = payload.nickname
+
     try:
         db.commit()
         db.refresh(vote)
@@ -203,6 +229,7 @@ def cast_vote(
             status_code=status.HTTP_409_CONFLICT,
             detail="You have already voted in this poll",
         )
+
 
     # Decision 4 & 5: Broadcast updated results to any connected SSE clients
     updated_results = _compute_poll_results(poll, db)
