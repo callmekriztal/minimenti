@@ -174,6 +174,19 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Complete Automated CI: Backend + Frontend + Docker Build).
 - **Rationale**: Demonstrates rigorous engineering discipline for a student portfolio, ensuring that both Python backend services and React frontend assets are continuously tested and buildable in Docker.
 
+### Decision 12: Presenter Audience Joining Experience & Link Sharing
+- **Date**: 2026-11-15
+- **Question**: How should the presenter screen facilitate frictionless joining for in-person and remote participants?
+- **Options Considered**:
+  1. *Option 1 (Interactive Click-to-Copy Button + Projector QR Code Modal)*: Provide an interactive 1-click clipboard copy button with visual feedback, plus an on-screen QR code modal for mobile audience scanning.
+     - *Pros*: Solves mobile joining friction completely (audiences can scan the screen directly with their camera app); presenters can copy and paste the link into Zoom/Teams chat with a single click.
+     - *Cons*: Adds a client-side SVG QR code generator dependency.
+  2. *Option 2 (Static Text URL Only)*: Render a plain monospace text string with the URL.
+     - *Pros*: Zero dependencies.
+     - *Cons*: High friction: mobile users must manually type a 36-character UUID link; easy to misread or fail to join.
+- **Chosen Option**: Option 1 (Interactive Click-to-Copy Button + Projector QR Code Modal).
+- **Rationale**: Replicates the signature Mentimeter experience where in-person presentation attendees point their mobile camera at the slide to join instantly without typing.
+
 
 
 
