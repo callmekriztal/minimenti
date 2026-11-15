@@ -211,3 +211,4 @@ Closes a poll to prevent any further voting.
 
 
 
+# minimenti
