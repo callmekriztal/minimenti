@@ -52,11 +52,25 @@ A lightweight live polling API designed for interactive presentations and voting
    ```
    Runs the React frontend at `http://localhost:3000` with instant HMR and automatic API proxying to `http://localhost:8000`.
 
+---
 
+### Option 2: Cloud Deployment (Render Blueprint - 1-Click)
+
+This repository includes a declarative [`render.yaml`](file:///home/celeste/minimenti/render.yaml) Infrastructure-as-Code blueprint to deploy the PostgreSQL database and FastAPI + React Web Service together:
+
+1. Push your repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com), click **New +** > **Blueprint**.
+3. Select your GitHub repository.
+4. Render will read [`render.yaml`](file:///home/celeste/minimenti/render.yaml) and automatically:
+   - Provision a managed PostgreSQL instance (`minimenti-db`).
+   - Build the multi-stage Docker container (React build + Python runtime).
+   - Inject the PostgreSQL connection string as `DATABASE_URL`.
+   - Run Alembic database migrations on startup.
+   - Serve the React SPA and API with HTTPS and native SSE streaming.
 
 ---
 
-### Option 2: Running Locally (Host Virtual Environment)
+### Option 3: Running Locally (Host Virtual Environment)
 
 1. **Create and activate a Python 3.12 virtual environment**:
    ```bash

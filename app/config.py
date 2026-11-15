@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/minimenti"
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
+    PORT: int | None = None
     CORS_ORIGINS: list[str] | str = [
         "http://localhost:3000",
         "http://localhost:5173",
@@ -15,6 +16,18 @@ class Settings(BaseSettings):
     ]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        # Render and Heroku provide postgres:// URLs, but SQLAlchemy 2.0 requires postgresql://
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql://", 1)
+        return value
+
+    @property
+    def server_port(self) -> int:
+        return self.PORT or self.APP_PORT
 
     @field_validator("CORS_ORIGINS")
     @classmethod

@@ -145,6 +145,22 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Multi-Stage Docker Build Served by FastAPI on Port 8000).
 - **Rationale**: Keeps Docker execution unified on a single port (8000) while still providing a modern React development workflow with Vite HMR locally.
 
+### Decision 10: Cloud Deployment Platform
+- **Date**: 2026-11-15
+- **Question**: Where and how should Mini Mentimeter (FastAPI + PostgreSQL + React SPA) be deployed to the cloud for live public demonstration?
+- **Options Considered**:
+  1. *Option 1 (Render - Blueprint `render.yaml` with Managed PostgreSQL & Web Service)*: Declarative Infrastructure as Code (IaC) file creating a managed Postgres DB and a Web Service running our multi-stage Docker container.
+     - *Pros*: Single-click deploy via `render.yaml`; fully declarative; free/starter tier with HTTPS, custom domains, and native Server-Sent Events (SSE) support; zero CORS friction (same-origin SPA serving).
+     - *Cons*: Free web service instances spin down after 15 minutes of inactivity (~30-50s cold start on first request).
+  2. *Option 2 (Railway)*: Deploy via `railway.json` and Dockerfile with attached PostgreSQL plugin.
+     - *Pros*: Fast builds, no spin-down on active usage.
+     - *Cons*: Requires credit card verification / trial credit expiration.
+  3. *Option 3 (Fly.io)*: Deploy micro-VMs using `fly.toml` with Fly Postgres.
+     - *Pros*: Global edge deployment with persistent containers.
+     - *Cons*: Requires CLI tool installation (`flyctl`) and account payment method verification for free tier.
+- **Chosen Option**: Option 1 (Render Blueprint `render.yaml`).
+- **Rationale**: Provides declarative Infrastructure-as-Code (`render.yaml`) that can be deployed by anyone or an interviewer directly from GitHub with zero setup hassle, native SSE support, and an automated PostgreSQL connection.
+
 
 
 
