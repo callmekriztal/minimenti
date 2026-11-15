@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Lock, Maximize2, Minimize2, Radio, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Users, Lock, Maximize2, Minimize2, Radio, CheckCircle, ShieldAlert, Copy, Check, QrCode } from 'lucide-react';
+import QRCode from 'qrcode';
 import { PollResults } from '../types';
 
 interface PresentPollProps {
@@ -25,8 +26,24 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
   const [connected, setConnected] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const effectiveAdminKey = propAdminKey || localStorage.getItem(`admin_key_${pollId}`);
+  const voterUrl = `${window.location.origin}/?view=vote&poll_id=${pollId}`;
+
+  useEffect(() => {
+    QRCode.toDataURL(voterUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(null));
+  }, [voterUrl]);
+
+  const copyVoterLink = () => {
+    navigator.clipboard.writeText(voterUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     // Decision 4: Connect to Server-Sent Events stream
@@ -87,8 +104,6 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
       setClosing(false);
     }
   };
-
-  const voterUrl = `${window.location.origin}/?view=vote&poll_id=${pollId}`;
 
   if (!data) {
     return (
@@ -233,18 +248,73 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
 
       {/* Footer / Audience Instruction */}
       <footer className="w-full max-w-6xl mx-auto border-t border-slate-900 pt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2.5">
           <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 font-bold rounded-lg uppercase tracking-wider text-[10px]">
             Join & Vote
           </span>
-          <span className="text-slate-300 font-medium">
-            Open in browser: <code className="text-indigo-400 font-mono font-bold bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">{voterUrl}</code>
-          </span>
+          <button
+            type="button"
+            onClick={copyVoterLink}
+            title="Click to copy voting link"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 text-slate-200 px-3 py-1.5 rounded-xl font-mono text-xs transition group cursor-pointer shadow-sm active:scale-95"
+          >
+            <span className="text-indigo-400 select-all">{voterUrl}</span>
+            {copied ? (
+              <span className="flex items-center gap-1 text-[11px] font-sans font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                <Check className="w-3 h-3 text-emerald-400" /> Copied!
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[11px] font-sans text-slate-400 group-hover:text-indigo-300">
+                <Copy className="w-3 h-3" /> Click to Copy
+              </span>
+            )}
+          </button>
+
+          {qrDataUrl && (
+            <button
+              type="button"
+              onClick={() => setShowQr(!showQr)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition"
+            >
+              <QrCode className="w-3.5 h-3.5 text-indigo-400" />
+              {showQr ? 'Hide QR' : 'Show QR'}
+            </button>
+          )}
         </div>
+
         <div className="text-slate-600 font-mono text-[11px]">
           Powered by FastAPI & PostgreSQL
         </div>
       </footer>
+
+      {/* QR Code Modal / Popup for Projector */}
+      {showQr && qrDataUrl && (
+        <div 
+          onClick={() => setShowQr(false)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center max-w-sm shadow-2xl animate-in fade-in zoom-in duration-150 cursor-default"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Scan to Vote</span>
+              <button 
+                type="button" 
+                onClick={() => setShowQr(false)}
+                className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 bg-slate-800 rounded-lg"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div className="p-4 bg-white rounded-2xl mx-auto inline-block shadow-inner mb-4">
+              <img src={qrDataUrl} alt="Voting QR Code" className="w-48 h-48 sm:w-56 sm:h-56" />
+            </div>
+            <p className="text-white text-sm font-bold">Point your phone camera to join</p>
+            <p className="text-slate-400 text-xs mt-1 font-mono break-all">{voterUrl}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
