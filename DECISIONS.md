@@ -100,6 +100,23 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (Creator Secret Key / `admin_key`).
 - **Rationale**: Provides secure administrative protection for poll lifecycle actions while preserving zero-friction guest poll creation and keeping the codebase small and readable.
 
+### Decision 7: Cross-Origin Resource Sharing (CORS) Policy
+- **Date**: 2026-11-15
+- **Question**: How should CORS be configured on the FastAPI backend for frontend integration?
+- **Options Considered**:
+  1. *Option 1 (Configurable Whitelist via Environment Variable with Local Dev Defaults)*: Use `CORSMiddleware` with `settings.CORS_ORIGINS`, defaulting to `["http://localhost:3000", "http://localhost:5173"]`.
+     - *Pros*: Follows security best practices by preventing uncontrolled wildcard access; fully configurable via `.env` in production without code changes; works out of the box with standard dev servers (Next.js, Vite).
+     - *Cons*: Requires updating `.env` if using a non-standard local frontend port.
+  2. *Option 2 (Permissive Wildcard `allow_origins=["*"]`)*: Allow any origin unconditionally.
+     - *Pros*: Never blocks any frontend during prototyping.
+     - *Cons*: Dangerous in production; bad interview practice.
+  3. *Option 3 (Reverse Proxy Pattern without CORS)*: Use Nginx to serve frontend and backend from the same origin.
+     - *Pros*: No CORS needed.
+     - *Cons*: Overcomplicates local development before a frontend is even built.
+- **Chosen Option**: Option 1 (Configurable Whitelist via Environment Variable with Local Dev Defaults).
+- **Rationale**: Aligns with production security standards while providing zero-friction integration with standard local frontend tooling (Vite and Next.js).
+
+
 
 
 

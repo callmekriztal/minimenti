@@ -384,4 +384,34 @@ def test_close_poll_with_admin_key(client):
     assert vote_res.json()["detail"] == "Poll is closed"
 
 
+def test_cors_headers_allowed_origin(client):
+    # Origin in settings.CORS_ORIGINS
+    headers = {"Origin": "http://localhost:3000"}
+    response = client.get("/health", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    assert response.headers.get("access-control-allow-credentials") == "true"
+
+
+def test_cors_preflight_request(client):
+    headers = {
+        "Origin": "http://localhost:5173",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "Content-Type,X-Admin-Key",
+    }
+    response = client.options("/polls", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:5173"
+    assert "POST" in response.headers.get("access-control-allow-methods", "")
+
+
+def test_cors_rejected_origin(client):
+    # Origin NOT in whitelist
+    headers = {"Origin": "http://malicious-site.com"}
+    response = client.get("/health", headers=headers)
+    assert response.status_code == status.HTTP_200_OK
+    assert "access-control-allow-origin" not in response.headers
+
+
+
 
