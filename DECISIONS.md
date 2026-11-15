@@ -52,4 +52,38 @@ Each entry documents the core question, alternatives considered with trade-offs,
 - **Chosen Option**: Option 1 (On-the-Fly SQL Aggregation).
 - **Rationale**: Prioritizes write concurrency and data integrity during simultaneous voting spikes; provides a clean single source of truth without lock contention.
 
+### Decision 4: Real-Time Live Results Streaming Protocol
+- **Date**: 2026-11-15
+- **Question**: How should live vote updates be broadcast to presenter screens and participants in real time?
+- **Options Considered**:
+  1. *Option A (Server-Sent Events / SSE)*: Use a persistent HTTP connection (`GET /polls/{id}/stream`) sending text/event-stream payloads when votes are cast.
+     - *Pros*: Native HTTP protocol, built-in browser `EventSource` with auto-reconnection, minimal overhead, perfect fit for unidirectional server-to-client updates.
+     - *Cons*: Unidirectional only (clients submit votes via regular HTTP POST).
+  2. *Option B (WebSockets)*: Establish full-duplex bi-directional TCP socket connections (`ws://`).
+     - *Pros*: Bi-directional communication.
+     - *Cons*: Additional stateful connection lifecycle overhead, ping/pong management, and framing complexity when only push updates are needed.
+  3. *Option C (Short Polling)*: Client polls `GET /polls/{id}/results` on a 1–2s interval.
+     - *Pros*: Simple, no persistent streaming connections.
+     - *Cons*: High redundant network and database overhead; noticeable latency lag.
+- **Chosen Option**: Option A (Server-Sent Events / SSE).
+- **Rationale**: Results broadcasting is inherently unidirectional; SSE uses standard HTTP, integrates natively with browser `EventSource`, and provides real-time updates with minimal architectural complexity.
+
+### Decision 5: Real-Time Event Fanout Architecture
+- **Date**: 2026-11-15
+- **Question**: How should real-time vote events be broadcast from the HTTP vote handler to active SSE subscriber connections?
+- **Options Considered**:
+  1. *Option 1 (In-Memory `asyncio.Queue` Broadcaster)*: Maintain in-process subscriber queues mapped to `poll_id`.
+     - *Pros*: Zero external dependencies (uses standard library `asyncio`), clean and readable, ultra-low latency, easy to explain in an interview.
+     - *Cons*: Single-process only; multi-worker scaling requires a distributed message broker.
+  2. *Option 2 (PostgreSQL Native `LISTEN` / `NOTIFY`)*: Publish updates using Postgres notification channels.
+     - *Pros*: Works across workers without adding new infrastructure services.
+     - *Cons*: Requires an asynchronous long-running connection pool listener; added lifecycle complexity.
+  3. *Option 3 (Redis Pub/Sub)*: Use external Redis service to broadcast messages.
+     - *Pros*: Standard horizontal scaling pattern.
+     - *Cons*: Adds infrastructure overhead (Redis service container, connection management) unnecessary for single-instance learning scope.
+- **Chosen Option**: Option 1 (In-Memory `asyncio.Queue` Broadcaster).
+- **Rationale*: Minimal moving parts, highly educational and readable, and directly demonstrates Python asynchronous programming patterns without external operational overhead.
+
+
+
 

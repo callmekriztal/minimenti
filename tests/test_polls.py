@@ -279,3 +279,52 @@ def test_get_poll_results_aggregation(client):
     assert counts["Blue"] == 1
     assert counts["Green"] == 0
 
+
+def test_stream_poll_not_found(client):
+    random_id = uuid.uuid4()
+    response = client.get(f"/polls/{random_id}/stream")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_stream_poll_initial_event(client):
+    import json
+
+    poll_res = client.post(
+        "/polls",
+        json={"question": "Stream test?", "options": ["Yes", "No"]},
+    )
+    poll_id = poll_res.json()["id"]
+
+    with client.stream("GET", f"/polls/{poll_id}/stream") as stream_res:
+        assert stream_res.status_code == status.HTTP_200_OK
+        assert "text/event-stream" in stream_res.headers["content-type"]
+        for line in stream_res.iter_lines():
+            if line.startswith("data: "):
+                data = json.loads(line[6:])
+                assert data["poll_id"] == poll_id
+                assert data["total_votes"] == 0
+                assert len(data["results"]) == 2
+                break
+
+
+def test_broadcaster_subscribe_broadcast_unsubscribe():
+    from app.broadcaster import Broadcaster
+
+    b = Broadcaster()
+    test_id = uuid.uuid4()
+
+    q1 = b.subscribe(test_id)
+    q2 = b.subscribe(test_id)
+    assert len(b._subscribers[test_id]) == 2
+
+    b.broadcast(test_id, "vote_updated")
+    assert q1.get_nowait() == "vote_updated"
+    assert q2.get_nowait() == "vote_updated"
+
+    b.unsubscribe(test_id, q1)
+    assert len(b._subscribers[test_id]) == 1
+
+    b.unsubscribe(test_id, q2)
+    assert test_id not in b._subscribers
+
+

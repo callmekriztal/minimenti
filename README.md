@@ -181,5 +181,11 @@ Fetches aggregate poll results calculated on-the-fly via SQL aggregation.
       }
     ]
   }
-  ```
+### `GET /polls/{id}/stream`
+Server-Sent Events (SSE) endpoint for live presenter screens. Pushes instant update events whenever a vote is cast.
+- **Protocol**: HTTP SSE (`Content-Type: text/event-stream`)
+- **Initial Connection**: Immediately pushes current results as the first event.
+- **Heartbeat**: Pushes `: ping` comments every 15s to keep connections alive through proxies and firewalls.
+- **Resource Footprint**: Streams hold **zero** database connections while open.
+
 
