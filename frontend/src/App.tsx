@@ -7,6 +7,7 @@ import { PresentDeck } from './components/PresentDeck';
 import { VoteDeck } from './components/VoteDeck';
 import { PollRead, PresentationCreated } from './types';
 import { PlusCircle, Layers, Vote } from 'lucide-react';
+import { LoadingScreen } from './components/LoadingScreen';
 
 type AppView = 'create_deck' | 'create_single' | 'vote_deck' | 'present_deck' | 'vote_single' | 'present_single';
 
@@ -43,6 +44,25 @@ export const App: React.FC = () => {
   const [joinCode, setJoinCode] = useState<string | null>(initial.joinCode);
   const [adminKey, setAdminKey] = useState<string | null>(initial.adminKey);
   const [joinInput, setJoinInput] = useState('');
+  const [appLoading, setAppLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const minTimer = new Promise((resolve) => setTimeout(resolve, 850));
+    const healthCheck = fetch('/health')
+      .then((res) => res.json())
+      .catch(() => null);
+
+    Promise.all([minTimer, healthCheck]).then(() => {
+      if (mounted) {
+        setAppLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -96,6 +116,16 @@ export const App: React.FC = () => {
     setJoinCode(clean);
     setView('vote_deck');
   };
+
+  if (appLoading) {
+    return (
+      <LoadingScreen
+        message="Launching MiniMenti..."
+        subtext="Connecting to live presentation engine"
+        fullScreen={true}
+      />
+    );
+  }
 
   if (view === 'present_deck' && presentationId) {
     return <PresentDeck presentationId={presentationId} adminKey={adminKey} />;

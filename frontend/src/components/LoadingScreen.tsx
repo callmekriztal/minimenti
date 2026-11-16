@@ -14,7 +14,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center p-6 text-center select-none ${
+      className={`flex flex-col items-center justify-center p-6 text-center select-none animate-in fade-in duration-300 ${
         fullScreen ? 'min-h-[100dvh] bg-palette-charcoal text-palette-blush' : 'py-16'
       }`}
     >
