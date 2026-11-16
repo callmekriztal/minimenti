@@ -48,7 +48,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    const minTimer = new Promise((resolve) => setTimeout(resolve, 850));
+    const minTimer = new Promise((resolve) => setTimeout(resolve, 3000));
     const healthCheck = fetch('/health')
       .then((res) => res.json())
       .catch(() => null);
