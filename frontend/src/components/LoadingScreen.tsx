@@ -8,8 +8,8 @@ interface LoadingScreenProps {
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  message = 'Loading MiniMenti...',
-  subtext = 'Connecting to real-time presentation engine',
+  message = 'Loading...',
+  subtext,
   fullScreen = true,
 }) => {
   return (

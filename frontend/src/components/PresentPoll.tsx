@@ -105,8 +105,7 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
   if (!data) {
     return (
       <LoadingScreen
-        message="Connecting to Live Stream..."
-        subtext={`Listening for real-time poll events on /polls/${pollId}/stream`}
+        message="Loading live results..."
         fullScreen={true}
       />
     );

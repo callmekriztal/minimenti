@@ -93,7 +93,6 @@ export const VotePoll: React.FC<VotePollProps> = ({ pollId }) => {
     return (
       <LoadingScreen
         message="Loading poll..."
-        subtext="Fetching live poll options"
         fullScreen={false}
       />
     );

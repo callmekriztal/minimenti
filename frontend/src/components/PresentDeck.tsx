@@ -123,8 +123,7 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
   if (!state) {
     return (
       <LoadingScreen
-        message="Syncing presentation..."
-        subtext="Establishing real-time SSE projector connection"
+        message="Loading presentation..."
         fullScreen={true}
       />
     );

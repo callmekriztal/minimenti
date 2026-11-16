@@ -120,8 +120,7 @@ export const App: React.FC = () => {
   if (appLoading) {
     return (
       <LoadingScreen
-        message="Launching MiniMenti..."
-        subtext="Connecting to live presentation engine"
+        message="Loading..."
         fullScreen={true}
       />
     );

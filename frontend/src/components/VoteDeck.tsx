@@ -188,7 +188,6 @@ export const VoteDeck: React.FC<VoteDeckProps> = ({ joinCode, presentationId }) 
     return (
       <LoadingScreen
         message="Connecting to presentation..."
-        subtext="Syncing live questions & quiz status"
         fullScreen={true}
       />
     );
