@@ -10,50 +10,52 @@ import { PlusCircle, Layers, Vote } from 'lucide-react';
 
 type AppView = 'create_deck' | 'create_single' | 'vote_deck' | 'present_deck' | 'vote_single' | 'present_single';
 
+const parseUrlParams = () => {
+  const params = new URLSearchParams(window.location.search);
+  const urlView = params.get('view');
+  const urlPollId = params.get('poll_id');
+  const urlPresId = params.get('pres_id');
+  const urlCode = params.get('code');
+  const urlAdminKey = params.get('admin_key');
+
+  if (urlCode) {
+    return { view: 'vote_deck' as AppView, joinCode: urlCode, pollId: null, presentationId: null, adminKey: null };
+  } else if (urlView === 'present_deck' && urlPresId) {
+    return { view: 'present_deck' as AppView, joinCode: null, pollId: null, presentationId: urlPresId, adminKey: urlAdminKey };
+  } else if (urlView === 'vote_deck' && urlPresId) {
+    return { view: 'vote_deck' as AppView, joinCode: null, pollId: null, presentationId: urlPresId, adminKey: null };
+  } else if (urlView === 'vote' && urlPollId) {
+    return { view: 'vote_single' as AppView, joinCode: null, pollId: urlPollId, presentationId: null, adminKey: null };
+  } else if (urlView === 'present' && urlPollId) {
+    return { view: 'present_single' as AppView, joinCode: null, pollId: urlPollId, presentationId: null, adminKey: urlAdminKey };
+  } else if (urlView === 'single') {
+    return { view: 'create_single' as AppView, joinCode: null, pollId: null, presentationId: null, adminKey: null };
+  } else {
+    return { view: 'create_deck' as AppView, joinCode: null, pollId: null, presentationId: null, adminKey: null };
+  }
+};
+
 export const App: React.FC = () => {
-  const [view, setView] = useState<AppView>('create_deck');
-  const [pollId, setPollId] = useState<string | null>(null);
-  const [presentationId, setPresentationId] = useState<string | null>(null);
-  const [joinCode, setJoinCode] = useState<string | null>(null);
-  const [adminKey, setAdminKey] = useState<string | null>(null);
+  const [initial] = useState(parseUrlParams);
+  const [view, setView] = useState<AppView>(initial.view);
+  const [pollId, setPollId] = useState<string | null>(initial.pollId);
+  const [presentationId, setPresentationId] = useState<string | null>(initial.presentationId);
+  const [joinCode, setJoinCode] = useState<string | null>(initial.joinCode);
+  const [adminKey, setAdminKey] = useState<string | null>(initial.adminKey);
   const [joinInput, setJoinInput] = useState('');
 
   useEffect(() => {
-    const parseUrl = () => {
-      const params = new URLSearchParams(window.location.search);
-      const urlView = params.get('view');
-      const urlPollId = params.get('poll_id');
-      const urlPresId = params.get('pres_id');
-      const urlCode = params.get('code');
-      const urlAdminKey = params.get('admin_key');
-
-      if (urlCode) {
-        setView('vote_deck');
-        setJoinCode(urlCode);
-      } else if (urlView === 'present_deck' && urlPresId) {
-        setView('present_deck');
-        setPresentationId(urlPresId);
-        setAdminKey(urlAdminKey);
-      } else if (urlView === 'vote_deck' && urlPresId) {
-        setView('vote_deck');
-        setPresentationId(urlPresId);
-      } else if (urlView === 'vote' && urlPollId) {
-        setView('vote_single');
-        setPollId(urlPollId);
-      } else if (urlView === 'present' && urlPollId) {
-        setView('present_single');
-        setPollId(urlPollId);
-        setAdminKey(urlAdminKey);
-      } else if (urlView === 'single') {
-        setView('create_single');
-      } else {
-        setView('create_deck');
-      }
+    const handlePopState = () => {
+      const parsed = parseUrlParams();
+      setView(parsed.view);
+      setPollId(parsed.pollId);
+      setPresentationId(parsed.presentationId);
+      setJoinCode(parsed.joinCode);
+      setAdminKey(parsed.adminKey);
     };
 
-    parseUrl();
-    window.addEventListener('popstate', parseUrl);
-    return () => window.removeEventListener('popstate', parseUrl);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const handlePresentationCreated = (pres: PresentationCreated) => {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Lock, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PollRead } from '../types';
+import { LoadingScreen } from './LoadingScreen';
 
 interface VotePollProps {
   pollId: string;
@@ -90,10 +91,11 @@ export const VotePoll: React.FC<VotePollProps> = ({ pollId }) => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-sm mx-auto text-center py-16 text-palette-slate">
-        <div className="w-10 h-10 border-3 border-palette-grape border-t-palette-blush rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm font-medium">Loading poll...</p>
-      </div>
+      <LoadingScreen
+        message="Loading poll..."
+        subtext="Fetching live poll options"
+        fullScreen={false}
+      />
     );
   }
 

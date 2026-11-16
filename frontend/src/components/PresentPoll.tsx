@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Users, Lock, Maximize2, Minimize2, Radio, CheckCircle, ShieldAlert, Copy, Check, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 import { PollResults } from '../types';
+import { LoadingScreen } from './LoadingScreen';
+
 
 interface PresentPollProps {
   pollId: string;
@@ -102,13 +104,14 @@ export const PresentPoll: React.FC<PresentPollProps> = ({ pollId, adminKey: prop
 
   if (!data) {
     return (
-      <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-palette-charcoal text-palette-blush">
-        <div className="w-14 h-14 border-4 border-palette-grape/30 border-t-palette-blush rounded-full animate-spin mb-4" />
-        <h2 className="text-xl font-bold tracking-tight">Connecting to Live Stream...</h2>
-        <p className="text-palette-slate text-xs mt-1 font-mono">Listening for poll events on /polls/{pollId}/stream</p>
-      </div>
+      <LoadingScreen
+        message="Connecting to Live Stream..."
+        subtext={`Listening for real-time poll events on /polls/${pollId}/stream`}
+        fullScreen={true}
+      />
     );
   }
+
 
   const maxVotes = Math.max(...data.results.map((r) => r.vote_count), 1);
 

@@ -3,6 +3,8 @@ import { Users, ChevronLeft, ChevronRight, CheckCircle, Copy, Check, QrCode, Max
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
 import { PresentationState } from '../types';
+import { LoadingScreen } from './LoadingScreen';
+
 
 
 interface PresentDeckProps {
@@ -120,12 +122,14 @@ export const PresentDeck: React.FC<PresentDeckProps> = ({ presentationId, adminK
 
   if (!state) {
     return (
-      <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 bg-palette-charcoal text-palette-blush">
-        <div className="w-12 h-12 border-3 border-palette-grape border-t-palette-blush rounded-full animate-spin mb-4" />
-        <h2 className="text-xl font-bold tracking-tight">Syncing presentation...</h2>
-      </div>
+      <LoadingScreen
+        message="Syncing presentation..."
+        subtext="Establishing real-time SSE projector connection"
+        fullScreen={true}
+      />
     );
   }
+
 
   if (state.is_finished) {
     const leaderboard = state.leaderboard || [];

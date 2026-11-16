@@ -2,12 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234F46E5'/><text x='50%' y='55%' font-size='60' font-weight='bold' fill='white' dominant-baseline='middle' text-anchor='middle'>M</text></svg>" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236b4e71'/><text x='50%' y='55%' font-size='60' font-weight='900' fill='%23f5dddd' dominant-baseline='middle' text-anchor='middle'>M</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Mini Mentimeter - Live Polling & Presentations</title>
+    <style>
+      @keyframes minimenti-shimmer {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(50%); }
+        100% { transform: translateX(200%); }
+      }
+      @keyframes minimenti-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.04); opacity: 0.94; }
+      }
+    </style>
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
-    <div id="root"></div>
+  <body class="bg-[#3a4454] text-[#f5dddd] antialiased selection:bg-[#6b4e71] selection:text-[#f5dddd]">
+    <div id="root">
+      <div style="min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #3a4454; color: #f5dddd; font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 24px; user-select: none;">
+        <div style="position: relative; margin-bottom: 24px;">
+          <div style="position: absolute; inset: -16px; border-radius: 28px; background: rgba(107, 78, 113, 0.35); filter: blur(24px);"></div>
+          <div style="position: relative; width: 88px; height: 88px; border-radius: 24px; background: #6b4e71; color: #f5dddd; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid rgba(245, 221, 221, 0.3); animation: minimenti-pulse 2.5s ease-in-out infinite;">
+            M
+          </div>
+        </div>
+        <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px; color: #f5dddd;">MiniMenti</div>
+        <div style="font-size: 13px; font-weight: 600; color: #c2b2b4; margin-bottom: 24px; max-width: 260px;">Loading live presentation & polls...</div>
+        <div style="width: 192px; height: 6px; background: rgba(83, 104, 126, 0.35); border-radius: 9999px; overflow: hidden; position: relative; border: 1px solid rgba(83, 104, 126, 0.4);">
+          <div style="width: 50%; height: 100%; background: linear-gradient(90deg, #6b4e71, #f5dddd, #6b4e71); border-radius: 9999px; animation: minimenti-shimmer 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

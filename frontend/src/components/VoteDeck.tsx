@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Layers, Loader2, Trophy, Crown, ArrowRight, Sparkles, User, Medal } from 'lucide-react';
+import { CheckCircle2, Layers, Trophy, Crown, ArrowRight, Sparkles, User, Medal } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PresentationState } from '../types';
+import { LoadingScreen } from './LoadingScreen';
+
 
 interface VoteDeckProps {
   joinCode?: string;
@@ -184,12 +186,14 @@ export const VoteDeck: React.FC<VoteDeckProps> = ({ joinCode, presentationId }) 
 
   if (loading) {
     return (
-      <div className="w-full max-w-sm mx-auto text-center py-16 text-palette-slate">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-palette-blush" />
-        <p className="text-sm font-medium tracking-wide">Connecting to presentation...</p>
-      </div>
+      <LoadingScreen
+        message="Connecting to presentation..."
+        subtext="Syncing live questions & quiz status"
+        fullScreen={true}
+      />
     );
   }
+
 
   if (error || !state) {
     return (
