@@ -222,6 +222,26 @@ def cast_vote(
             detail="Poll is closed",
         )
 
+    # SEC-04: Reject votes if presentation is finished or poll is not the currently active slide
+    if poll.presentation_id is not None:
+        presentation = db.scalar(
+            select(Presentation)
+            .options(selectinload(Presentation.polls))
+            .where(Presentation.id == poll.presentation_id)
+        )
+        if presentation is not None:
+            if presentation.is_finished:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Presentation has ended",
+                )
+            ordered_polls = sorted(presentation.polls, key=lambda p: p.position)
+            if presentation.active_poll_index >= len(ordered_polls) or ordered_polls[presentation.active_poll_index].id != poll.id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="This poll is not currently active for voting",
+                )
+
     # Validate that option belongs to this poll
     option = db.scalar(
         select(Option).where(
