@@ -15,13 +15,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 
-import random
+import secrets
 import string
 
 
 def generate_join_code() -> str:
     """Generate a clean, readable 6-digit numeric room code."""
-    return "".join(random.choices(string.digits, k=6))
+    return "".join(secrets.choice(string.digits) for _ in range(6))
 
 
 class Presentation(Base):

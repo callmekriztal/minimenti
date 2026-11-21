@@ -4,11 +4,12 @@ import uuid
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.broadcaster import broadcaster
 from app.db import SessionLocal, get_db
-from app.models import Option, Poll, Presentation, PresentationParticipant, Vote
+from app.models import Option, Poll, Presentation, PresentationParticipant, Vote, generate_join_code
 from app.routers.polls import _build_poll_read, _compute_poll_results
 from app.schemas import (
     LeaderboardEntryRead,
@@ -134,33 +135,47 @@ def _build_presentation_state(presentation: Presentation, db: Session) -> Presen
     summary="Create a new presentation deck with multiple questions",
 )
 def create_presentation(payload: PresentationCreate, db: Session = Depends(get_db)):
-    presentation = Presentation(
-        title=payload.title,
-    )
-    db.add(presentation)
-    db.flush()
+    max_retries = 5
+    presentation = None
 
-    for idx, poll_in in enumerate(payload.polls):
-        poll = Poll(
-            presentation_id=presentation.id,
-            position=idx,
-            question=poll_in.question,
-            closes_at=poll_in.closes_at,
-        )
-        db.add(poll)
-        db.flush()
-
-        for opt_idx, opt_text in enumerate(poll_in.options):
-            is_corr = poll_in.correct_option_index is not None and opt_idx == poll_in.correct_option_index
-            option = Option(
-                poll_id=poll.id,
-                text=opt_text,
-                position=opt_idx,
-                is_correct=is_corr,
+    for attempt in range(max_retries):
+        try:
+            presentation = Presentation(
+                title=payload.title,
+                join_code=generate_join_code(),
             )
-            db.add(option)
+            db.add(presentation)
+            db.flush()
 
-    db.commit()
+            for idx, poll_in in enumerate(payload.polls):
+                poll = Poll(
+                    presentation_id=presentation.id,
+                    position=idx,
+                    question=poll_in.question,
+                    closes_at=poll_in.closes_at,
+                )
+                db.add(poll)
+                db.flush()
+
+                for opt_idx, opt_text in enumerate(poll_in.options):
+                    is_corr = poll_in.correct_option_index is not None and opt_idx == poll_in.correct_option_index
+                    option = Option(
+                        poll_id=poll.id,
+                        text=opt_text,
+                        position=opt_idx,
+                        is_correct=is_corr,
+                    )
+                    db.add(option)
+
+            db.commit()
+            break
+        except IntegrityError:
+            db.rollback()
+            if attempt == max_retries - 1:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to generate a unique room code after multiple attempts",
+                )
 
     # Re-fetch with relationships loaded
     stmt = (
