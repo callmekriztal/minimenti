@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.broadcaster import broadcaster
-from app.db import get_db
+from app.db import SessionLocal, get_db
 from app.models import Option, Poll, Presentation, Vote
 from app.schemas import (
     OptionResultRead,
@@ -270,18 +270,19 @@ def get_poll_results(poll_id: uuid.UUID, db: Session = Depends(get_db)):
 async def stream_poll_results(
     poll_id: uuid.UUID,
     request: Request,
-    db: Session = Depends(get_db),
 ):
-    poll = db.scalar(select(Poll).where(Poll.id == poll_id))
-    if poll is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Poll not found",
-        )
+    with SessionLocal() as db:
+        poll = db.scalar(select(Poll).where(Poll.id == poll_id))
+        if poll is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Poll not found",
+            )
 
-    # Fetch initial state before entering the long-lived generator.
-    # Note: Holding DB sessions during long-lived streams exhausts connection pools!
-    initial_data = _compute_poll_results(poll, db).model_dump_json()
+        # Fetch initial state in a short-lived session before entering the long-lived generator.
+        # This prevents holding DB sessions during long-lived streams and exhausting connection pools.
+        initial_data = _compute_poll_results(poll, db).model_dump_json()
+
     queue = broadcaster.subscribe(poll_id)
 
     async def event_generator():

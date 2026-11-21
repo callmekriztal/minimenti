@@ -19,9 +19,12 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_
 
 
 @pytest.fixture(scope="function")
-def db_session():
+def db_session(monkeypatch):
     Base.metadata.create_all(bind=test_engine)
     session = TestingSessionLocal()
+    monkeypatch.setattr("app.db.SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr("app.routers.polls.SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr("app.routers.presentations.SessionLocal", TestingSessionLocal)
     try:
         yield session
     finally:

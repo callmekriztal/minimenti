@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.broadcaster import broadcaster
-from app.db import get_db
+from app.db import SessionLocal, get_db
 from app.models import Option, Poll, Presentation, PresentationParticipant, Vote
 from app.routers.polls import _compute_poll_results
 from app.schemas import (
@@ -370,22 +370,22 @@ def previous_slide(
 async def stream_presentation(
     presentation_id: uuid.UUID,
     request: Request,
-    db: Session = Depends(get_db),
 ):
-    stmt = (
-        select(Presentation)
-        .options(selectinload(Presentation.polls).selectinload(Poll.options))
-        .where(Presentation.id == presentation_id)
-    )
-    presentation = db.scalar(stmt)
-    if presentation is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Presentation not found",
+    with SessionLocal() as db:
+        stmt = (
+            select(Presentation)
+            .options(selectinload(Presentation.polls).selectinload(Poll.options))
+            .where(Presentation.id == presentation_id)
         )
+        presentation = db.scalar(stmt)
+        if presentation is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Presentation not found",
+            )
 
-    initial_state = _build_presentation_state(presentation, db)
-    initial_payload = initial_state.model_dump_json()
+        initial_state = _build_presentation_state(presentation, db)
+        initial_payload = initial_state.model_dump_json()
 
     queue = broadcaster.subscribe(presentation_id)
 
