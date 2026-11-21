@@ -16,10 +16,16 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY alembic.ini .
-COPY alembic/ ./alembic/
-COPY app/ ./app/
-COPY --from=frontend-builder /build/dist ./frontend/dist
+# Create a non-root system user and configure application directory ownership
+RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser && \
+    chown -R appuser:appuser /app
+
+COPY --chown=appuser:appuser alembic.ini .
+COPY --chown=appuser:appuser alembic/ ./alembic/
+COPY --chown=appuser:appuser app/ ./app/
+COPY --chown=appuser:appuser --from=frontend-builder /build/dist ./frontend/dist
+
+USER appuser
 
 EXPOSE 8000
 
