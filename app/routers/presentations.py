@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.broadcaster import broadcaster
 from app.db import SessionLocal, get_db
 from app.models import Option, Poll, Presentation, PresentationParticipant, Vote
-from app.routers.polls import _compute_poll_results
+from app.routers.polls import _build_poll_read, _compute_poll_results
 from app.schemas import (
     LeaderboardEntryRead,
     OptionRead,
@@ -102,7 +102,8 @@ def _build_presentation_state(presentation: Presentation, db: Session) -> Presen
 
     if 0 <= presentation.active_poll_index < total_polls:
         active_poll_model = ordered_polls[presentation.active_poll_index]
-        active_poll = PollRead.model_validate(active_poll_model)
+        slide_ended = presentation.is_finished or active_poll_model.is_closed
+        active_poll = _build_poll_read(active_poll_model, is_admin=slide_ended)
         results = _compute_poll_results(active_poll_model, db)
 
     participants_count = db.scalar(
@@ -168,7 +169,17 @@ def create_presentation(payload: PresentationCreate, db: Session = Depends(get_d
         .options(selectinload(Presentation.polls).selectinload(Poll.options))
         .where(Presentation.id == presentation.id)
     )
-    return db.scalar(stmt)
+    pres_model = db.scalar(stmt)
+    return PresentationCreatedRead(
+        id=pres_model.id,
+        title=pres_model.title,
+        join_code=pres_model.join_code,
+        active_poll_index=pres_model.active_poll_index,
+        is_finished=pres_model.is_finished,
+        created_at=pres_model.created_at,
+        admin_key=pres_model.admin_key,
+        polls=[_build_poll_read(p, is_admin=True) for p in pres_model.polls],
+    )
 
 
 @router.post(

@@ -7,7 +7,12 @@ class OptionRead(BaseModel):
     id: int
     text: str
     position: int
-    is_correct: bool | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OptionClosedRead(OptionRead):
+    is_correct: bool
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -60,7 +65,7 @@ class PollRead(BaseModel):
     created_at: datetime
     closes_at: datetime | None
     is_closed: bool
-    options: list[OptionRead]
+    options: list[OptionClosedRead] | list[OptionRead]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -68,6 +73,7 @@ class PollRead(BaseModel):
 class PollCreatedRead(PollRead):
     # Decision 6: Secret key returned only to creator upon creation
     admin_key: uuid.UUID
+    options: list[OptionClosedRead]
 
 
 class VoteCreate(BaseModel):

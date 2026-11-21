@@ -11,6 +11,8 @@ from app.broadcaster import broadcaster
 from app.db import SessionLocal, get_db
 from app.models import Option, Poll, Presentation, Vote
 from app.schemas import (
+    OptionClosedRead,
+    OptionRead,
     OptionResultRead,
     PollCreate,
     PollCreatedRead,
@@ -73,6 +75,35 @@ def _compute_poll_results(poll: Poll, db: Session) -> PollResultsRead:
     )
 
 
+def _build_poll_read(poll: Poll, is_admin: bool = False) -> PollRead:
+    now = datetime.now(timezone.utc)
+    is_expired = False
+    if poll.closes_at is not None:
+        closing_time = (
+            poll.closes_at
+            if poll.closes_at.tzinfo
+            else poll.closes_at.replace(tzinfo=timezone.utc)
+        )
+        is_expired = closing_time <= now
+
+    is_closed_val = poll.is_closed or is_expired
+    if is_closed_val or is_admin:
+        options = [OptionClosedRead.model_validate(opt) for opt in poll.options]
+    else:
+        options = [OptionRead.model_validate(opt) for opt in poll.options]
+
+    return PollRead(
+        id=poll.id,
+        presentation_id=poll.presentation_id,
+        position=poll.position,
+        question=poll.question,
+        created_at=poll.created_at,
+        closes_at=poll.closes_at,
+        is_closed=is_closed_val,
+        options=options,
+    )
+
+
 @router.post("", response_model=PollCreatedRead, status_code=status.HTTP_201_CREATED)
 def create_poll(payload: PollCreate, db: Session = Depends(get_db)):
     poll = Poll(
@@ -93,7 +124,17 @@ def create_poll(payload: PollCreate, db: Session = Depends(get_db)):
     db.add(poll)
     db.commit()
     db.refresh(poll)
-    return poll
+    return PollCreatedRead(
+        id=poll.id,
+        presentation_id=poll.presentation_id,
+        position=poll.position,
+        question=poll.question,
+        created_at=poll.created_at,
+        closes_at=poll.closes_at,
+        is_closed=poll.is_closed,
+        admin_key=poll.admin_key,
+        options=[OptionClosedRead.model_validate(opt) for opt in poll.options],
+    )
 
 
 
@@ -113,7 +154,7 @@ def get_poll(poll_id: uuid.UUID, db: Session = Depends(get_db)):
             detail="Poll not found",
         )
 
-    return poll
+    return _build_poll_read(poll)
 
 
 @router.post("/{poll_id}/close", response_model=PollRead)
@@ -149,7 +190,7 @@ def close_poll(
     updated_results = _compute_poll_results(poll, db)
     broadcaster.broadcast(poll_id, updated_results.model_dump_json())
 
-    return poll
+    return _build_poll_read(poll, is_admin=True)
 
 
 @router.post("/{poll_id}/votes", response_model=VoteRead, status_code=status.HTTP_201_CREATED)
