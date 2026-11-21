@@ -118,7 +118,6 @@ class LeaderboardEntryRead(BaseModel):
     score: int
     correct_count: int
     total_questions: int
-    voter_token: str | None = None
 
 
 class VoteRead(BaseModel):

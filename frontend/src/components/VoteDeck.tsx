@@ -273,8 +273,7 @@ export const VoteDeck: React.FC<VoteDeckProps> = ({ joinCode, presentationId }) 
   // 2. Finished Presentation: Real-time Leaderboard Visible to Everyone
   if (state.is_finished) {
     const leaderboard = state.leaderboard || [];
-    const voterToken = getVoterToken();
-    const currentUserEntry = leaderboard.find((e) => e.voter_token === voterToken || e.nickname === nickname);
+    const currentUserEntry = leaderboard.find((e) => e.nickname === nickname);
 
     return (
       <div className="w-full max-w-md mx-auto glass-panel rounded-3xl p-5 sm:p-7 text-center space-y-6 shadow-2xl animate-in fade-in duration-300">
@@ -382,7 +381,7 @@ export const VoteDeck: React.FC<VoteDeckProps> = ({ joinCode, presentationId }) 
         {/* All Remaining Ranks */}
         <div className="space-y-2 text-left max-h-48 overflow-y-auto pr-1">
           {leaderboard.map((entry) => {
-            const isMe = entry.voter_token === voterToken || entry.nickname === nickname;
+            const isMe = entry.nickname === nickname;
             return (
               <div
                 key={entry.rank}

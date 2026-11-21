@@ -88,7 +88,6 @@ def _compute_leaderboard(presentation: Presentation, db: Session) -> list[Leader
                 score=u["correct_count"] * 1000,
                 correct_count=u["correct_count"],
                 total_questions=total_questions,
-                voter_token=u["voter_token"],
             )
         )
     return leaderboard

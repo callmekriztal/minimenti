@@ -37,7 +37,6 @@ export interface LeaderboardEntry {
   score: number;
   correct_count: number;
   total_questions: number;
-  voter_token?: string;
 }
 
 export interface PresentationState {
